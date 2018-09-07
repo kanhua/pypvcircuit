@@ -22,6 +22,9 @@ $conda_scripts=Join-Path "$conda_path" "Scripts"
 $Env:Path += ";$conda_bin"
 $Env:Path += ";$conda_scripts"
 
+#Somehow we should set path variable in order to launch python in miniconda3 directory
+$Env:Path += ";$conda_path"
+
 #download Miniconda
 # The installation instruction is from https://conda.io/docs/user-guide/install/windows.html#install-win-silent
 Write-Host "Check if Miniconda3.exe is downloaded....."
@@ -56,7 +59,7 @@ Expand-Archive -LiteralPath "$this_path\ngspice-28_64.zip" -DestinationPath $thi
 
 
 # install required python package
-conda install numpy scipy matplotlib jupyter cython scikit-image
+conda install --yes numpy scipy matplotlib jupyter cython scikit-image
 # Download the masters zip archive. This will also donload the required zip files
 $solcore_link="https://github.com/kanhua/solcore5/archive/master.zip"
 pip download --no-deps $solcore_link
@@ -69,8 +72,6 @@ Expand-Archive -LiteralPath master.zip -DestinationPath $this_path -Force
 pip install --upgrade -e (Join-Path "$this_path" "solcore5-master")
 #configure ngspice in solcore5.
 
-#Somehow we should set path variable in order to launch python in miniconda3 directory
-#$Env:Path += ";$conda_path"
 
 $ngspice_path="$this_path\ngspice-28_64\Spice64\bin\ngspice.exe"
 

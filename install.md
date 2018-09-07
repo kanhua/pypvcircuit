@@ -12,7 +12,14 @@ Installion of this software suite will not require the autorization of administr
 
 ## Install the software suite
 
-### Step 1: Change ExecutionPolicy setting
+### Step 1: Install the latest version of Powershell
+
+Follow [this instruction](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell?view=powershell-6#upgrading-existing-windows-powershell) to upgrade your Microsoft Powershell to the latest version (PS5.1).
+This is done by downloading and installing [Windows Management Framework 5.1](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell?view=powershell-6#upgrading-existing-windows-powershell).
+[This page](https://docs.microsoft.com/en-gb/powershell/wmf/5.1/install-configure#download-and-install-the-wmf-51-package) which file you should download. 
+
+
+### Step 2: Change ExecutionPolicy setting
 
 Reason for this step: by default, Powershell does not allow the execution of third-party powershell script.
 We therefore have to allow it to do that temporarily.
@@ -24,15 +31,17 @@ We therefore have to allow it to do that temporarily.
 > Set-ExecutionPolicy Unrestricted
 ```
 
-### Step 2: Run the installtion script
+### Step 3: Run the installtion script
 
-1. In Powershell, run
+1. Right click ```install.ps1```, select **Run with Powershell**.
+
+2. Select the folder that you would like to install.
 
 ```
 solcore5_install.ps1 > Out-File -FilePath install.log -Encode utf8
 ```
 
-2. Click Yes to proceed if you see any user prompt messages.
+3. Click Yes to proceed if you see any user prompt messages.
 
 
 ## Change the path environment variables (Advanced)
