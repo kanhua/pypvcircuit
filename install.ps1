@@ -12,11 +12,12 @@ Function Get-FolderName($initialDirectory)
 
 $initPath=Get-Location
 Write-Host "Please select a directory to install the software..."
-$this_path=Get-FolderName -initialDirectory $initPath
+#$this_path=Get-FolderName -initialDirectory $initPath
 
-#$this_path=Get-Location
-#$conda_path=Join-Path $env:USERPROFILE "Miniconda3"
-$conda_path=Join-Path -Path "$this_path" -ChildPath "Miniconda3"
+$this_path=Get-Location
+$conda_path=Join-Path $env:USERPROFILE "Miniconda3"
+Write-Host "Miniconda will be installed in $conda_path"
+#$conda_path=Join-Path -Path "$this_path" -ChildPath "Miniconda3"
 $conda_bin=Join-Path "$conda_path" "Library\bin"
 $conda_scripts=Join-Path "$conda_path" "Scripts"
 $Env:Path += ";$conda_bin"
@@ -41,7 +42,7 @@ if (!(Test-Path $conda_path))
   #Execute the downloaded file in silent mode
   Write-Host "Installing Miniconda3..."
   $install_conda="start /wait "" Miniconda3.exe /InstallationType=JustMe /RegisterPython=0 /S /D=%UserProfile%\Miniconda3"
-  CMD /C "$this_path\Miniconda3.exe /InstallationType=JustMe /RegisterPython=0 /S /D=$conda_path"
+  CMD /C "$this_path\Miniconda3.exe /InstallationType=JustMe /RegisterPython=0 /S /D=%UserProfile%\Miniconda3"
 }
 else{
 
