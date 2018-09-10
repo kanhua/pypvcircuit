@@ -8,7 +8,7 @@ This script will download and install the following software:
 3. NGSpice: A circuit network library
 
 All the software will be installed in a folder of your choice.
-Installion of this software suite will not require the autorization of administrator of the OS.
+Installation of this software suite will not require the authorization of administrator of the OS.
 
 ## Install the software suite
 
@@ -35,13 +35,9 @@ We therefore have to allow it to do that temporarily.
 
 1. Right click ```install.ps1```, select **Run with Powershell**.
 
-2. Select the folder that you would like to install.
+2. Click Yes to proceed if you see any user prompt messages.
 
-```
-solcore5_install.ps1 > Out-File -FilePath install.log -Encode utf8
-```
-
-3. Click Yes to proceed if you see any user prompt messages.
+Note: All the software will be downloaded in the same directory of ```install.ps1```
 
 
 ## Change the path environment variables (Advanced)
