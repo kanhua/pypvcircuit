@@ -14,7 +14,6 @@ See Section 7 of [this article](https://doi.org/10.1007/s10825-018-1171-3) for t
 Read [this guide](./install.md) for how to install this package.
 
 
-
 ## Other resources
 
 - [Official github site of solcore5](https://github.com/dalonsoa/solcore5)
@@ -22,3 +21,11 @@ Read [this guide](./install.md) for how to install this package.
 - [NGSpice](http://ngspice.sourceforge.net/)
 
 
+### Resources of learning python
+
+- [Google's python course](https://developers.google.com/edu/python/)
+
+
+### Jupyter Notebooks
+
+- [Jupyter Notebook Basics](http://nbviewer.jupyter.org/github/jupyter/notebook/blob/master/docs/source/examples/Notebook/Notebook%20Basics.ipynb)

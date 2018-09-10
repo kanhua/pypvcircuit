@@ -14,7 +14,6 @@ from solcore.spice import solve_quasi_3D
 # The solver expect images with values between 0 and 255 and imread of a PNG image is between 0 and 1, even when
 # it is in grey, so we scale it multiplying by 255. If the image were JPG, the result would be already in (0,255).
 
-
 def calc_iv(illuminationMask):
     contactsMask = imread('masks_sq.png')
 

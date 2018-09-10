@@ -74,7 +74,7 @@ pip install --upgrade -e (Join-Path "$this_path" "solcore5-master")
 #configure ngspice in solcore5.
 
 
-$ngspice_path="$this_path\ngspice-28_64\Spice64\bin\ngspice.exe"
+$ngspice_path="$this_path\Spice64\bin\ngspice.exe"
 
 # This python script uses built-in solcore config to rewrite the config file in
 # $env:USERPROFILE\.solcore_config.txt

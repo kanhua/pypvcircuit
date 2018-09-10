@@ -40,4 +40,15 @@ We therefore have to allow it to do that temporarily.
 Note: All the software will be downloaded in the same directory of ```install.ps1```
 
 
+### Step 4: Change ExecutionPolicy setting back
+
+For security, we switch the execution policy back.
+1. Run Windows Powershell as administrator. [This page](https://msdn.microsoft.com/en-us/library/dn568022.aspx) shows how to do this.
+2. Open Powershell, in the powershell command line, run the following script
+
+```
+> Set-ExecutionPolicy restricted
+```
+
+
 ## Change the path environment variables (Advanced)
