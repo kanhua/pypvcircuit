@@ -16,7 +16,7 @@ Write-Host "Please select a directory to install the software..."
 
 $this_path=Get-Location
 $conda_path=Join-Path $env:USERPROFILE "Anaconda3"
-Write-Host "Miniconda will be installed in $conda_path"
+Write-Host "Anaconda will be installed in $conda_path"
 #$conda_path=Join-Path -Path "$this_path" -ChildPath "Miniconda3"
 $conda_bin=Join-Path "$conda_path" "Library\bin"
 $conda_scripts=Join-Path "$conda_path" "Scripts"
@@ -28,7 +28,7 @@ $Env:Path += ";$conda_path"
 
 #download Miniconda
 # The installation instruction is from https://conda.io/docs/user-guide/install/windows.html#install-win-silent
-Write-Host "Check if Miniconda3.exe is downloaded....."
+Write-Host "Check if Anaconda3.exe is downloaded....."
 if (!(Test-Path "$this_path\Anaconda3.zip"))
 {
   Write-Host "Downloading Anaconda3..."
@@ -41,7 +41,7 @@ if (!(Test-Path "$this_path\Anaconda3.zip"))
 if (!(Test-Path $conda_path))
 {
   #Execute the downloaded file in silent mode
-  Write-Host "Installing Anaconda3..."
+  Write-Host "Installing Anaconda3, this may take a few minutes....."
   CMD /C ".\shared\www\archive\Anaconda3-5.2.0-Windows-x86_64.exe /InstallationType=JustMe /RegisterPython=0 /S /D=%UserProfile%\Anaconda3"
 }
 else{
