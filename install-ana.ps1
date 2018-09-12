@@ -1,15 +1,5 @@
 # TODO:check the latest version of this script and update it
 
-Function Get-FolderName($initialDirectory)
-{
- [System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms") |
- Out-Null
-
- $OpenFileDialog = New-Object System.Windows.Forms.FolderBrowserDialog
- $OpenFileDialog.ShowDialog() | Out-Null
- return $OpenFileDialog.SelectedPath
-} #end function Get-FileName
-
 Function Check-CondaFileExists($FilePath, $ExpectedFileHash)
 {
   if (!(Test-Path $FilePath))
@@ -27,19 +17,10 @@ Function Check-CondaFileExists($FilePath, $ExpectedFileHash)
 }
 
 
-#$MyInvocation
-
-Split-Path -Path $MyInvocation.InvocationName -Parent
-
-$initPath=Get-Location
-Write-Host "Please select a directory to install the software..."
-#$this_path=Get-FolderName -initialDirectory $initPath
-
-$this_path=Get-Location
-Write-Host $this_path
+$this_path=$PSScriptRoot
+Write-Output "The software files will be downloaded to: $this_path"
 $conda_path=Join-Path $env:USERPROFILE "Anaconda3"
-Write-Host "Anaconda will be installed in $conda_path"
-#$conda_path=Join-Path -Path "$this_path" -ChildPath "Miniconda3"
+Write-Output "Anaconda will be installed in $conda_path"
 $conda_bin=Join-Path "$conda_path" "Library\bin"
 $conda_scripts=Join-Path "$conda_path" "Scripts"
 $Env:Path += ";$conda_bin"
