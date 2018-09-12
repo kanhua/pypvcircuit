@@ -39,6 +39,18 @@ We therefore have to allow it to do that temporarily.
 
 Note: All the software will be downloaded in the same directory of ```install.ps1```
 
+#### Run ```install.ps1``` from terminal
+
+1. In file explorer, go to the folder of ```solar-cell-circuit-master```   
+![folder](./doc_images/to_folder.png)
+
+2. Click File -> Open Windows Powershell   
+![open_powershell](./doc_images/open_powershell.png)
+
+3. In powershell, type ```.\install.ps1```   
+![in_powershell](./doc_images/in_powershell.png)
+
+
 
 ### Step 4: Change ExecutionPolicy setting back
 
