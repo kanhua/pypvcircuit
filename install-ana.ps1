@@ -10,11 +10,33 @@ Function Get-FolderName($initialDirectory)
  return $OpenFileDialog.SelectedPath
 } #end function Get-FileName
 
+Function Check-CondaFileExists($FilePath, $ExpectedFileHash)
+{
+  if (!(Test-Path $FilePath))
+  {
+    return $false
+  }
+  else
+  {
+    $fileHash=(Get-FileHash -Path $FilePath -algorithm MD5).Hash
+    if ($fileHash -eq $ExpectedFileHash)
+    { return $true }
+    else { return $false }
+  }
+
+}
+
+
+#$MyInvocation
+
+Split-Path -Path $MyInvocation.InvocationName -Parent
+
 $initPath=Get-Location
 Write-Host "Please select a directory to install the software..."
 #$this_path=Get-FolderName -initialDirectory $initPath
 
 $this_path=Get-Location
+Write-Host $this_path
 $conda_path=Join-Path $env:USERPROFILE "Anaconda3"
 Write-Host "Anaconda will be installed in $conda_path"
 #$conda_path=Join-Path -Path "$this_path" -ChildPath "Miniconda3"
@@ -26,10 +48,11 @@ $Env:Path += ";$conda_scripts"
 #Somehow we should set path variable in order to launch python in miniconda3 directory
 $Env:Path += ";$conda_path"
 
+$condaFileHash="82ED9D1D93AB2EA6A605B4DA3B2D35A9"
 #download Miniconda
 # The installation instruction is from https://conda.io/docs/user-guide/install/windows.html#install-win-silent
 Write-Host "Check if Anaconda3.exe is downloaded....."
-if (!(Test-Path "$this_path\Anaconda3.zip"))
+if (!(Check-CondaFileExists -FilePath "$this_path\Anaconda3.zip" -ExpectedFileHash $condaFileHash))
 {
   Write-Host "Downloading Anaconda3..."
     $miniconda_link="https://repo.continuum.io/archive/.winzip/Anaconda3-5.2.0-Windows-x86_64.zip"
