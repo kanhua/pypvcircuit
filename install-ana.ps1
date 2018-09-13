@@ -45,43 +45,63 @@ if (!(Check-CondaFileExists -FilePath "$this_path\Anaconda3.zip" -ExpectedFileHa
 if (!(Test-Path $conda_path))
 {
   #Execute the downloaded file in silent mode
-  Write-Host "Installing Anaconda3, this may take a few minutes....."
+  Write-Output "Installing Anaconda3, this may take a few minutes....."
   CMD /C ".\shared\www\archive\Anaconda3-5.2.0-Windows-x86_64.exe /InstallationType=JustMe /RegisterPython=0 /S /D=%UserProfile%\Anaconda3"
+  if (Test-Path $conda_path)
+  {
+    Write-Output "Anaconda3 is installed."
+  }
 }
 else{
 
-  Write-Host "$conda_path already exists"
+  Write-Output "$conda_path already installed"
 }
 
 
 # download ngspice.
 $client = new-object System.Net.WebClient
 $ngspice_link= "https://s3-ap-northeast-1.amazonaws.com/kh-deep-learning-model/ngspice-28_64.zip"
-Write-Host "Downloading ngspice..."
-$client.DownloadFile($ngspice_link,"$this_path\ngspice-28_64.zip")
-Write-Host "Extracting ngspice..."
+$ngspiceHash="393D5E2924704B7C202B31B6BF6B88A2"
+
+$ngspiceZipPath="$this_path\ngspice-28_64.zip"
+
+if (!(Check-CondaFileExists -FilePath $ngspiceZipPath -ExpectedFileHash $ngspiceHash))
+{
+  Write-Output "Downloading ngspice..."
+  $client.DownloadFile($ngspice_link, $ngspiceZipPath)
+}
+else
+{
+  Write-Output "ngspice has been downloaded..."
+}
+
+Write-Output "Extracting ngspice..."
 Expand-Archive -LiteralPath "$this_path\ngspice-28_64.zip" -DestinationPath $this_path -Force
 
 
 # install required python package
 # conda install --yes numpy scipy matplotlib jupyter cython scikit-image
 # Download the masters zip archive. This will also donload the required zip files
-$solcore_link="https://github.com/kanhua/solcore5/archive/master.zip"
-pip download --no-deps $solcore_link
+Write-Output "Downloading Solcore5....."
 
-#$client.DownloadFile($solcore_link,"$this_path\master.zip")
+$solcore_link="https://s3-ap-northeast-1.amazonaws.com/kh-deep-learning-model/solcore5-master.zip"
+$client.DownloadFile($solcore_link, "$this_path\master.zip")
 
-# expand the downlaoded zip
+Write-Output "Extracting Solcore5....."
 Expand-Archive -LiteralPath master.zip -DestinationPath $this_path -Force
 
+Write-Output "Installing Solcore5...."
 pip install --upgrade -e (Join-Path "$this_path" "solcore5-master")
 #configure ngspice in solcore5.
-
 
 $ngspice_path="$this_path\Spice64\bin\ngspice.exe"
 
 # This python script uses built-in solcore config to rewrite the config file in
 # $env:USERPROFILE\.solcore_config.txt
+
+Write-Output "Configuring solcore5...."
 $python_path = "$conda_path\python.exe"
 #python setup_spice.py $ngspice_path
 Invoke-Expression "$python_path setup_spice.py $ngspice_path"
+
+Write-Output "Install completed"
