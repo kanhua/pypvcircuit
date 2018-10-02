@@ -25,7 +25,7 @@ Reason for this step: by default, Powershell does not allow the execution of thi
 We therefore have to allow it to do that temporarily.
 
 1. Run Windows Powershell as administrator. [This page](https://msdn.microsoft.com/en-us/library/dn568022.aspx) shows how to do this.
-2. Open Powershell, in the powershell command line, run the following script
+2. Open Powershell, in the Powershell command line, run the following script
 
 ```
 > Set-ExecutionPolicy Unrestricted
@@ -51,12 +51,11 @@ Note: All the software will be downloaded in the same directory of ```install.ps
 ![in_powershell](./doc_images/in_powershell.png)
 
 
-
 ### Step 4: Change ExecutionPolicy setting back
 
 For security, we switch the execution policy back.
 1. Run Windows Powershell as administrator. [This page](https://msdn.microsoft.com/en-us/library/dn568022.aspx) shows how to do this.
-2. Open Powershell, in the powershell command line, run the following script
+2. Open Powershell, in the Powershell command line, run the following script
 
 ```
 > Set-ExecutionPolicy restricted
