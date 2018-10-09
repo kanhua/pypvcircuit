@@ -6,6 +6,10 @@
 *.key
 *.zip
 *.exe
+Spice64/
+private_data/
+solcore5-master/
+docs/
 
 .idea/*
 
@@ -171,4 +175,3 @@ venv.bak/
 
 # mypy
 .mypy_cache/
-

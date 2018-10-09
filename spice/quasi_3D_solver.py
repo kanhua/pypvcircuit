@@ -1,3 +1,11 @@
+"""
+The following piece of code is adapted from spice module in solcore (https://github.com/dalonsoa/solcore5)
+The imported commit of solcore5 repo is 4dada034c89cd97fcf02dcdeccc100683ba7a742
+or ab25847a1bcaf817c8213d1e2b954e355612e0ba of this repository.
+
+Please use git diff to track the change of code
+"""
+
 import numpy as np
 from solcore.solar_cell_solver import solar_cell_solver
 from .spice import solve_circuit
@@ -191,8 +199,9 @@ def create_header(I01, I02, n1, n2, Eg, T=20):
     return SPICEheader
 
 
-def solve_circuit_quasi3D(vini, vfin, step, Isc, I01, I02, n1, n2, Eg, Rshunt, Rseries, injection, contacts, RsTop,
-                          RsBot, Rline, Rcontact, Lx, Ly):
+def solve_circuit_quasi3D(vini, vfin, step, Isc, I01, I02, n1, n2, Eg, Rshunt, Rseries, injection, contacts,
+                          RsTop: np.ndarray,
+                          RsBot: np.ndarray, Rline, Rcontact, Lx, Ly):
     """ This is the function that actually dumps all the information to the Spice engine, runs the calculation, and retrieves the datafrom the calculator.
 
     :param vini: Initial voltage (V)
