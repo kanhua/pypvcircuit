@@ -1,7 +1,7 @@
 # Circuit network simulation of solar cells
 
 
-This repository demonstrates how to use solcore5 and ngspice to simulate solar cell in 2D or 3D.
+This repository demonstrates how to use solcore5 and ngspice to simulate solar cell in 2D or 3D. The algorithm and the code is partly adapted from Solcore[https://github.com/dalonsoa/solcore5], but I added a number of my own tweaks. Details are described [here](./docs/calculation_principles.md).
 
 
 ![network_sim](./doc_images/network_sim.001.jpeg)
@@ -9,7 +9,7 @@ This repository demonstrates how to use solcore5 and ngspice to simulate solar c
 
 ## Model
 
-See Section 7 of [this article](https://doi.org/10.1007/s10825-018-1171-3) for the details of this model.
+A brief description of the model is [here](./docs/calculation_principles.md). PDF version is [here](./docs/calculation_principles.pdf).
 
 ## Definition of resistances
 
