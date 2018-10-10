@@ -1,0 +1,7 @@
+name: solcore5
+dependencies:
+  - numpy
+  - scipy
+  - matplotlib
+  - jupyter
+  - cython

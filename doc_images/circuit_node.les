@@ -1,0 +1,65 @@
+<LayoutEditorSchematic>
+<Sheet noname>
+<Wire 298 -238 294 -238 260 -238 260 -239>
+<Wire 294 -223 294 -238>
+<Component 164 -255 38 -1 90 0 res LTspice>
+devicename=RtY
+value=&nbsp;
+Package=1206
+</Component>
+<Component 278 -127 26 -40 0 0 res LTspice>
+devicename=RtX
+value=&nbsp;
+Package=1206
+</Component>
+<Wire 459 -161 408 -161>
+<Wire 408 -133 408 -161>
+<Wire 368 -304 368 -322>
+<Wire 369 -322 368 -322>
+<Wire 293 -318 293 -322 368 -322>
+<Component 443 -177 53 -3 90 0 res LTspice>
+devicename=RbusX
+value=&nbsp;
+Package=1206
+</Component>
+<Component 392 -37 26 -40 0 0 res LTspice>
+devicename=RbusY
+value=&nbsp;
+Package=1206
+</Component>
+<Component 392 -145 26 -40 0 0 res LTspice>
+devicename=Rcontact
+value=&nbsp;
+Package=1206
+</Component>
+<Wire 524 -241 452 -241 452 -240>
+<Wire 400 -348 400 -322>
+<Wire 452 -322 401 -322 400 -322>
+<Wire 524 -321 452 -321>
+<Wire 452 -304 452 -321 452 -322 439 -322 401 -322 400 -322 368 -322 368 -318>
+<Component 384 -332 26 -40 0 0 res LTspice>
+devicename=Rseries
+value=&nbsp;
+Package=1206
+</Component>
+<Component 508 -225 26 -40 0 0 res LTspice>
+devicename=R_shunt
+value=&nbsp;
+Package=1206
+</Component>
+<Wire 452 -240 368 -240>
+<Wire 293 -238 294 -238 298 -238 368 -238 368 -240>
+<Component 293 -318 -37 33 180 0 current LTspice>
+devicename=I1
+value=I
+</Component>
+<Component 436 -240 24 0 0 0 diode LTspice>
+devicename=D2
+value=D
+</Component>
+<Component 352 -240 24 0 0 0 diode LTspice>
+devicename=D1
+value=D
+</Component>
+</Sheet>
+</LayoutEditorSchematic>

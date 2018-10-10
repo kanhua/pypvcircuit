@@ -9,7 +9,10 @@
 Spice64/
 private_data/
 solcore5-master/
-docs/
+deps/
+*.psd
+*.ai
+*.indd
 
 .idea/*
 
