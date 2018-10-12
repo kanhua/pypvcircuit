@@ -86,7 +86,8 @@ def solve_quasi_3D(solar_cell, injection, contacts, options=None, Lx=10e-6, Ly=1
     return V, I, Vall, Vmet
 
 
-def create_node(type, idx, idy, Lx, Ly, Isc, topLCL, botLCL, rshunt, rseries, xMetalTop, yMetalTop, contact):
+def create_node(type, idx, idy, Lx, Ly, Isc, topLCL, botLCL, rshunt, rseries, xMetalTop, yMetalTop, contact,
+                boundary_x=False,boundary_y=False):
     """ Creates a node of the solar cell, meaning all the circuit elements at an XY location in the plane. This includes all the diodes, resistances and current sources for all the junctions at that location.
 
     :param type: The type of the node, 'Normal', 'Finger' or 'Bus'
@@ -121,20 +122,43 @@ def create_node(type, idx, idy, Lx, Ly, Isc, topLCL, botLCL, rshunt, rseries, xM
         diode1 = "d1_{0} t_{0} b_{0} diode1_{1}\n".format(loc, j)
         diode2 = "d2_{0} t_{0} b_{0} diode2_{1}\n".format(loc, j)
 
+        #TODO: patch 1
+        diode2 = ""
+
         # Now the shunt resistance
         rshuntJ = "Rshunt_{0} t_{0} b_{0} {1}\n".format(loc, rshunt[j])
+
+        #TODO: patch 2
+        rshuntJ=""
 
         # And add the source
         source = 'i{0} b_{0} t_{0} {1}\n'.format(loc, Isc[j])
 
-        # Now we add the sheet resistances
-        rbotLCLX = "RbX{0}to{1} b_{0} b_{1} {2}\n".format(loc, locXR, botLCL[j] / s)
-        rbotLCLY = "RbY{0}to{1} b_{0} b_{1} {2}\n".format(loc, locYR, botLCL[j] * s)
-        rtopLCLX = "RtX{0}to{1} t_{0} t_{1} {2}\n".format(loc, locXR, topLCL[j] / s)
-        rtopLCLY = "RtY{0}to{1} t_{0} t_{1} {2}\n".format(loc, locYR, topLCL[j] * s)
+
+        rbotLCLX=""
+        rtopLCLX=""
+
+        rbotLCLY=""
+        rtopLCLY=""
+
+        if not boundary_x:
+            # Now we add the sheet resistances
+            rbotLCLX = "RbX{0}to{1} b_{0} b_{1} {2}\n".format(loc, locXR, botLCL[j] / s)
+            rtopLCLX = "RtX{0}to{1} t_{0} t_{1} {2}\n".format(loc, locXR, topLCL[j] / s)
+
+
+        if not boundary_y:
+            rbotLCLY = "RbY{0}to{1} b_{0} b_{1} {2}\n".format(loc, locYR, botLCL[j] * s)
+            rtopLCLY = "RtY{0}to{1} t_{0} t_{1} {2}\n".format(loc, locYR, topLCL[j] * s)
+
 
         # Now the series resistance with the back of the junction
         rseriesJ = "Rseries{0}to{1} b_{0} {1} {2}\n".format(loc, locLow, rseries[j])
+
+        #TODO: patch 3
+
+        rseriesJ = "Rseries{0}to{1} b_{0} {1} {2}\n".format(loc, locLow, 0)
+
 
         if j == 0 and type == 'Finger':
             rcontact = "Rcontact{0} t_{0} m_{0} {1}\n".format(loc, contact)

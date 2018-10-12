@@ -45,8 +45,8 @@ class MyTestCase(unittest.TestCase):
         contactsMask = contactsMask[center_x:center_x + 50, center_y:center_y + 50]
 
         # Size of the pixels (m)
-        Lx = 10e-6
-        Ly = 10e-6
+        Lx = 10e-3
+        Ly = 10e-3
 
         # Height of the metal fingers (m)
         h = 2.2e-6

@@ -122,17 +122,30 @@ def generate_network(image: np.ndarray, rw: int, cw: int,
             rseries = Rseries / merged_pixel_area / gn
             rshunt = Rshunt / merged_pixel_area / gn
 
+            if xx==c_pixels-1:
+                is_boundary_x=True
+            else:
+                is_boundary_x=False
+
+            if yy==r_pixels-1:
+                is_boundary_y=True
+            else:
+                is_boundary_y=False
+
+
             # we create a normal node
             if metal_coverage > 1e-3:
                 SPICEbody = SPICEbody + create_node('Bus', xx, yy, merged_pixel_lx, merged_pixel_ly,
                                                     Isc=illumination[xx, yy] * (1 - metal_coverage) * isc,
                                                     topLCL=rsTop, botLCL=rsBot, rshunt=rshunt, rseries=rseries,
-                                                    xMetalTop=meta_r_x, yMetalTop=metal_r_y, contact=agg_contact)
+                                                    xMetalTop=meta_r_x, yMetalTop=metal_r_y, contact=agg_contact,
+                                                    boundary_x=is_boundary_x,boundary_y=is_boundary_y)
             else:
                 SPICEbody = SPICEbody + create_node('Normal', xx, yy, merged_pixel_lx, merged_pixel_ly,
                                                     Isc=illumination[xx, yy] * isc,
                                                     topLCL=rsTop, botLCL=rsBot, rshunt=rshunt, rseries=rseries,
-                                                    xMetalTop=meta_r_x, yMetalTop=metal_r_y, contact=agg_contact)
+                                                    xMetalTop=meta_r_x, yMetalTop=metal_r_y, contact=agg_contact,
+                                                    boundary_x=is_boundary_x,boundary_y=is_boundary_y)
 
     info = dict()
     info['ynodes'] = c_pixels

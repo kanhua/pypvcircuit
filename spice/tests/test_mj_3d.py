@@ -19,13 +19,13 @@ class MyTestCase(unittest.TestCase):
         # First we load the masks defining the illumination pattern and the contacts. Both must be greyscale images
         # The solver expect images with values between 0 and 255 and imread of a PNG image is between 0 and 1, even when
         # it is in grey, so we scale it multiplying by 255. If the image were JPG, the result would be already in (0,255).
-        illuminationMask = np.ones((1, 1), dtype=np.int) * 255
+        illuminationMask = np.ones((1, 1), dtype=np.float) * 255
         contactsMask = np.zeros((1, 1), dtype=np.int)
         contactsMask[0:1, 0:1] = 255
 
         # Size of the pixels (m)
-        Lx = 10e-6
-        Ly = 10e-6
+        Lx = 10e-3
+        Ly = 10e-3
 
         # Height of the metal fingers (m)
         h = 2.2e-6
@@ -38,8 +38,8 @@ class MyTestCase(unittest.TestCase):
 
         # Bias (V)
         vini = 0
-        vfin = 10.0
-        step = 0.1
+        vfin = 5.0
+        step = 0.05
 
         T = 298
 
@@ -52,7 +52,7 @@ class MyTestCase(unittest.TestCase):
 
         # For a single junction, this will have >28800 nodes and for the full 3J it will be >86400, so it is worth to
         # exploit symmetries whenever possible. A smaller number of nodes also makes the solver more robust.
-        my_solar_cell = SolarCell([db_junction3], T=T)
+        my_solar_cell = SolarCell([db_junction3,db_junction2], T=T)
 
         wl = np.linspace(350, 2000, 301) * 1e-9
         light_source = LightSource(source_type='standard', version='AM1.5g', x=wl, output_units='photon_flux_per_m',
@@ -74,6 +74,10 @@ class MyTestCase(unittest.TestCase):
 
         plt.figure(2)
         plt.semilogy(V, abs(I))
+
+        plt.figure(3)
+        plt.plot(V,I)
+
         plt.show()
 
         print(V)
@@ -107,12 +111,15 @@ class MyTestCase(unittest.TestCase):
         # Contact resistance (Ohm m2)
         Rcontact = 3e-10
 
+
         # Resistivity metal fingers (Ohm m)
         Rline = 2e-8
 
+
+
         # Bias (V)
         vini = 0
-        vfin = 3.0
+        vfin = 5.0
         step = 0.01
 
         T = 298
@@ -138,7 +145,7 @@ class MyTestCase(unittest.TestCase):
                                           h=h,
                                           R_back=1e-16, R_contact=Rcontact, R_line=Rline, bias_start=vini,
                                           bias_end=vfin,
-                                          bias_step=step)
+                                          bias_step=step,sub_cw=5,sub_rw=5)
 
         # Since we model 1/4 of the device, we multiply the current by 4
         I = I * 4
@@ -148,6 +155,10 @@ class MyTestCase(unittest.TestCase):
 
         plt.figure(2)
         plt.semilogy(V, abs(I))
+
+        plt.figure(3)
+        plt.plot(V,I)
+
         plt.show()
 
     def test_mj_circuit2(self):

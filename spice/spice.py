@@ -39,12 +39,18 @@ def solve_circuit(spice_file_contents, engine=spice.engine, raw=True):
         with open(spice_file_path, "w") as f:
             f.write(spice_file_contents)
 
+        with open("spice_in.txt", "w") as f:
+            f.write(spice_file_contents)
+
         this_process = subprocess.Popen([spice.engine, '-b', spice_file_path, '-o', spice_output_path])
         this_process.wait()
 
         # this_process = subprocess.run([spice.engine, '-b', spice_file_path, '-o', spice_output_path])
         with open(spice_output_path, "r") as f:
             raw_results = f.read()
+
+        with open("spice_out.txt", "w") as f:
+            f.write(raw_results)
 
         if raw:
             # We return all the output
