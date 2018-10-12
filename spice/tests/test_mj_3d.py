@@ -133,7 +133,7 @@ class MyTestCase(unittest.TestCase):
 
         # For a single junction, this will have >28800 nodes and for the full 3J it will be >86400, so it is worth to
         # exploit symmetries whenever possible. A smaller number of nodes also makes the solver more robust.
-        my_solar_cell = SolarCell([db_junction3], T=T)
+        my_solar_cell = SolarCell([db_junction3,db_junction2], T=T)
 
         wl = np.linspace(350, 2000, 301) * 1e-9
         light_source = LightSource(source_type='standard', version='AM1.5g', x=wl, output_units='photon_flux_per_m',

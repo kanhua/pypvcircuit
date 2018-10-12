@@ -6,7 +6,7 @@ import os
 import subprocess
 import tempfile
 import solcore
-
+from .parse_spice_input import reprocess_spice_input
 
 class spice:
     engine = solcore.config.get('External programs', 'spice')
@@ -14,7 +14,7 @@ class spice:
     output_file = "current_spice.out"
 
 
-def solve_circuit(spice_file_contents, engine=spice.engine, raw=True):
+def solve_circuit(spice_file_contents, engine=spice.engine, raw=True, postprocess_input=reprocess_spice_input):
     """
     Sends the spice-readable file to the spice engine which will run it and store the data in a temporary folder.
     Once the process is finished, it collects the data and returns it.
@@ -30,6 +30,11 @@ def solve_circuit(spice_file_contents, engine=spice.engine, raw=True):
     """
 
     spice.engine = engine
+
+    #post process the input script if necessary
+    if postprocess_input is not None:
+        spice_file_contents=postprocess_input(spice_file_contents)
+
 
     with tempfile.TemporaryDirectory(prefix="tmp", suffix="_sc3NGSPICE") as working_directory:
 
