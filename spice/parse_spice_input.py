@@ -3,6 +3,8 @@ import networkx
 
 
 def parse_spice_command(command: str):
+
+    # parse a SPICE device command into a dict
     name, p_node, n_node, value = command.split()
 
     cmd_atoms = dict()
@@ -22,6 +24,10 @@ def is_device(command: str):
     if len(command) == 0:
         return False
 
+    # Find the lines that describes a deivce
+    # TODO: this line should be more general
+    # for now we only assume we only have reisitors (r),
+    # diodes (d), voltage (v) and current (i) sources
     if command[0] in ['R', 'r', 'V', 'd', 'i']:
         return True
     else:
@@ -29,7 +35,11 @@ def is_device(command: str):
 
 
 def add_rep_node(circuit_graph):
+
     shorted_set = list(networkx.connected_components(circuit_graph))
+
+    # Every node will have an attribute 'root', every "shorted nodes"
+    # in the circuit will be given the new name 'root'
 
     set_id = 1
     for cset in shorted_set:
@@ -67,7 +77,11 @@ def reprocess_spice_input(contents: str):
         if c[0] in ['R', 'r']:
             r_cmd = parse_spice_command(c)
             if r_cmd['value'] == 0:
+
+                # we should add nodes first. Otherwise we cannot assign
+                # the attributes of the nodes later
                 shorted_node_g.add_nodes_from([r_cmd['p_node'], r_cmd['n_node']])
+
                 shorted_node_g.add_edge(r_cmd['p_node'], r_cmd['n_node'])
             else:
                 # resistors that are shorted will be discarded
