@@ -1,6 +1,6 @@
 import copy
 import networkx
-
+import re
 
 def parse_spice_command(command: str):
 
@@ -15,6 +15,22 @@ def parse_spice_command(command: str):
         cmd_atoms['value'] = float(value)
     else:
         cmd_atoms['value'] = value
+
+    return cmd_atoms
+
+def parse_v_probe(command:str):
+
+    cmd_atoms=dict()
+    pat=".PRINT DC v\((?P<node1>\w+)\) v\((?P<node2>\w+)\)"
+
+    match_obj=re.match(pat,command)
+
+    if match_obj is not None:
+        cmd_atoms['p_node']=match_obj['node1']
+        cmd_atoms['n_node']=match_obj['node2']
+
+    else:
+        cmd_atoms=None
 
     return cmd_atoms
 
@@ -108,6 +124,27 @@ def reprocess_spice_input(contents: str):
                 dev_cmd['n_node'] = shorted_node_g.nodes[v]['root']
 
             new_cmd_str = "{name} {p_node} {n_node} {value}".format(**dev_cmd)
+
+            reprocessed_output+=(new_cmd_str+"\n")
+        elif parse_v_probe(c) is not None:
+
+            dev_cmd=parse_v_probe(c)
+
+            u = dev_cmd['p_node']
+            v = dev_cmd['n_node']
+
+
+            if u in shorted_node_g:
+                dev_cmd['p_node'] = shorted_node_g.nodes[u]['root']
+
+            if v in shorted_node_g:
+                dev_cmd['n_node'] = shorted_node_g.nodes[v]['root']
+
+            if dev_cmd['n_node']=='0':
+                new_cmd_str=".PRINT DC v({p_node})".format(**dev_cmd)
+            else:
+
+                new_cmd_str=".PRINT DC v({p_node}) v({n_node})".format(**dev_cmd)
 
             reprocessed_output+=(new_cmd_str+"\n")
 

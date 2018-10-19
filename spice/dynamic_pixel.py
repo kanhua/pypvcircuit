@@ -4,6 +4,53 @@ from solcore.solar_cell_solver import solar_cell_solver
 from .quasi_3D_solver import create_node, create_header
 from .spice import solve_circuit
 
+from scipy.interpolate import interp2d
+
+
+def get_merged_r_image(mask_image: np.ndarray):
+    """
+    Generate merged resistance image
+
+    :param mask_image: mask image array
+    :return: the merged mask image
+    """
+
+    sub_image_coord = iterate_sub_image(mask_image, 20, 20)
+    agg_image = np.zeros((sub_image_coord.shape[0], sub_image_coord.shape[1]))
+
+    for i in range(sub_image_coord.shape[0]):
+        for j in range(sub_image_coord.shape[1]):
+            a, b, c, d = sub_image_coord[i, j, :]
+            agg_image[i, j] = np.sum(mask_image[a:b, c:d])
+
+    return agg_image
+
+
+def resize(image, new_shape):
+    """
+    Simple reszing procedure. Suitable for resizing illumination profile.
+
+    :param image: the input image
+    :param new_shape: target array shape tuple(new_x_dim,new_y_dim)
+    :return: the resized image
+    """
+    assert image.ndim == 2
+
+    # corner case
+    if image.shape == new_shape:
+        return image
+
+    row_index = np.arange(0, image.shape[0], 1)
+    col_index = np.arange(0, image.shape[1], 1)
+    image_func = interp2d(col_index, row_index, image)
+    x_new = np.linspace(0, image.shape[0], num=new_shape[0])
+    y_new = np.linspace(0, image.shape[1], num=new_shape[1])
+
+    resized_image = image_func(y_new, x_new)
+
+    assert resized_image.shape==new_shape
+    return resized_image
+
 
 def get_pixel_r(image: np.ndarray, r_x, r_y, threshold):
     """
@@ -19,6 +66,10 @@ def get_pixel_r(image: np.ndarray, r_x, r_y, threshold):
     assert image.ndim == 2
 
     r_mask = np.where(image > threshold, 1, 0)
+
+    # corner case
+    if np.sum(r_mask) == 0:
+        return np.inf, np.inf, 0
 
     metal_coverage_ratio = np.sum(r_mask).astype(np.float) / (image.shape[0] * image.shape[1])
 
@@ -68,10 +119,13 @@ def generate_network(image: np.ndarray, rw: int, cw: int,
                      Rseries,
                      Rcontact,
                      Rline,
-                     Lx, Ly, gn):
+                     Lx, Ly, gn, auto_resize=True):
     # All Resistanc related information is set here.
 
     SPICEbody = """"""
+
+    # when larger than this value, the pixel turn from a normal node to bus node
+    metal_coverage_threshold = 1e-3
 
     coord_set = iterate_sub_image(image, rw, cw)
 
@@ -81,26 +135,32 @@ def generate_network(image: np.ndarray, rw: int, cw: int,
     if illumination is None:
         illumination = np.ones((r_pixels, c_pixels), dtype=np.float)
 
-    assert illumination.shape == (r_pixels, c_pixels)
+    if auto_resize:
+        new_illumination = resize(illumination, (r_pixels, c_pixels))
+    else:
+        new_illumination = illumination
+
+    assert new_illumination.shape == (r_pixels, c_pixels)
 
     debug_image = np.zeros((r_pixels, c_pixels))
 
     # We create the solar cell units and the series resistances at each node
-    for xx in range(c_pixels):
-        for yy in range(r_pixels):
+    for c_index in range(c_pixels):
+        for r_index in range(r_pixels):
             # This calculates the metal resistance depending on having metal on top or not. It leaves some dangling
             # resistors in the circuit, but it shouldn't be a problem.
-            # metalR = max(metal * shadow[xx, yy], 1e-16) + 1e-16 * (1 - shadow[xx, yy])
+            # metalR = max(metal * shadow[c_index, r_index], 1e-16) + 1e-16 * (1 - shadow[c_index, r_index])
             # TODO figure out how to use this equation in my situation.
             metalR = Rline / gn
 
             # TODO In my scheme, Lx=Ly because I don't have to recalculate sheet resistance in create_node()
             # For now I just use Lx=Ly=1 for simplicity, because create_node only calculates s=Lx/Ly
 
-            merged_pixel_dy = coord_set[xx, yy, 1] - coord_set[xx, yy, 0]
-            merged_pixel_dx = coord_set[xx, yy, 3] - coord_set[xx, yy, 2]
+            merged_pixel_dy = coord_set[r_index, c_index, 1] - coord_set[r_index, c_index, 0]
+            merged_pixel_dx = coord_set[r_index, c_index, 3] - coord_set[r_index, c_index, 2]
 
-            sub_image = image[coord_set[xx, yy, 0]:coord_set[xx, yy, 1], coord_set[xx, yy, 2]:coord_set[xx, yy, 3]]
+            sub_image = image[coord_set[r_index, c_index, 0]:coord_set[r_index, c_index, 1],
+                        coord_set[r_index, c_index, 2]:coord_set[r_index, c_index, 3]]
 
             merged_pixel_lx = merged_pixel_dx * Lx
             merged_pixel_ly = merged_pixel_dy * Ly
@@ -109,12 +169,17 @@ def generate_network(image: np.ndarray, rw: int, cw: int,
 
             pixel_area = Lx * Ly
 
+            # TODO not every sub_image has resistance
             meta_r_x, metal_r_y, metal_coverage = \
                 get_pixel_r(sub_image, r_x=metalR, r_y=metalR, threshold=metal_threshold)
 
-            debug_image[xx, yy] = metal_coverage
+            debug_image[r_index, c_index] = metal_coverage
 
-            agg_contact = Rcontact / (merged_pixel_area * metal_coverage) / gn
+            if metal_coverage > metal_coverage_threshold:
+
+                agg_contact = Rcontact / (merged_pixel_area * metal_coverage) / gn
+            else:
+                agg_contact = np.inf
 
             rsTop = RsTop / gn
             rsBot = RsBot / gn
@@ -122,35 +187,34 @@ def generate_network(image: np.ndarray, rw: int, cw: int,
             rseries = Rseries / merged_pixel_area / gn
             rshunt = Rshunt / merged_pixel_area / gn
 
-            if xx==c_pixels-1:
-                is_boundary_x=True
+            if c_index == c_pixels - 1:
+                is_boundary_x = True
             else:
-                is_boundary_x=False
+                is_boundary_x = False
 
-            if yy==r_pixels-1:
-                is_boundary_y=True
+            if r_index == r_pixels - 1:
+                is_boundary_y = True
             else:
-                is_boundary_y=False
-
+                is_boundary_y = False
 
             # we create a normal node
             if metal_coverage > 1e-3:
-                SPICEbody = SPICEbody + create_node('Bus', xx, yy, merged_pixel_lx, merged_pixel_ly,
-                                                    Isc=illumination[xx, yy] * (1 - metal_coverage) * isc,
+                SPICEbody = SPICEbody + create_node('Bus', c_index, r_index, merged_pixel_lx, merged_pixel_ly,
+                                                    Isc=new_illumination[r_index, c_index] * (1 - metal_coverage) * isc,
                                                     topLCL=rsTop, botLCL=rsBot, rshunt=rshunt, rseries=rseries,
                                                     xMetalTop=meta_r_x, yMetalTop=metal_r_y, contact=agg_contact,
-                                                    boundary_x=is_boundary_x,boundary_y=is_boundary_y)
+                                                    boundary_x=is_boundary_x, boundary_y=is_boundary_y)
             else:
-                SPICEbody = SPICEbody + create_node('Normal', xx, yy, merged_pixel_lx, merged_pixel_ly,
-                                                    Isc=illumination[xx, yy] * isc,
+                SPICEbody = SPICEbody + create_node('Normal', c_index, r_index, merged_pixel_lx, merged_pixel_ly,
+                                                    Isc=new_illumination[r_index, c_index] * isc,
                                                     topLCL=rsTop, botLCL=rsBot, rshunt=rshunt, rseries=rseries,
                                                     xMetalTop=meta_r_x, yMetalTop=metal_r_y, contact=agg_contact,
-                                                    boundary_x=is_boundary_x,boundary_y=is_boundary_y)
+                                                    boundary_x=is_boundary_x, boundary_y=is_boundary_y)
 
     info = dict()
     info['ynodes'] = c_pixels
     info['xnodes'] = r_pixels
-    info['debug_image']=debug_image
+    info['debug_image'] = debug_image
 
     return SPICEbody, info
 
@@ -159,7 +223,8 @@ def solve_dynamic_circuit_quasi3d(vini, vfin, step, Isc, I01, I02, n1, n2, Eg, R
                                   RsTop: np.ndarray,
                                   RsBot: np.ndarray, Rline, Rcontact, Lx, Ly,
                                   tile_rw: int, tile_cw: int):
-    """ This is the function that actually dumps all the information to the Spice engine, runs the calculation, and retrieves the datafrom the calculator.
+    """ This is the function that actually dumps all the information to the Spice engine,
+    runs the calculation, and retrieves the datafrom the calculator.
 
     :param vini: Initial voltage (V)
     :param vfin: Final voltage (V)
@@ -207,7 +272,8 @@ def solve_dynamic_circuit_quasi3d(vini, vfin, step, Isc, I01, I02, n1, n2, Eg, R
     # contact = Rcontact / areaPerPixel / gn
     # metal = Rline / gn
 
-    illumination = injection / 255
+    # TODO this line causes headache
+    illumination = injection
     pads = np.where(contacts > 200, 1, 0)
     shadow = np.where(contacts > 55, 1, 0)
 
@@ -226,7 +292,7 @@ def solve_dynamic_circuit_quasi3d(vini, vfin, step, Isc, I01, I02, n1, n2, Eg, R
 
     # TODO many dummy variables here for the time being
     SPICEbody, network_info = generate_network(image=contacts, rw=tile_rw, cw=tile_cw,
-                                               illumination=None,
+                                               illumination=illumination,
                                                metal_threshold=50,
                                                isc=isc,
                                                RsTop=RsTop,
