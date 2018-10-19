@@ -13,7 +13,7 @@ class MyTestCase(unittest.TestCase):
     def test_merged_image(self):
         contactsMask = self.contact_mask
 
-        agg_image = get_merged_r_image(contactsMask)
+        agg_image = get_merged_r_image(contactsMask, 5, 5)
 
         plt.imshow(agg_image)
 

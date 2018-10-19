@@ -35,6 +35,7 @@ def parse_output(raw_results: str):
                 I = np.empty(data_num)
         else:
 
+            # start acquire data
             if aq_flag:
                 if re.match(data_pat, line):
 

@@ -3,19 +3,22 @@ from solcore.solar_cell_solver import solar_cell_solver
 
 from .quasi_3D_solver import create_node, create_header
 from .spice import solve_circuit
+from .parse_spice_output import parse_output
 
 from scipy.interpolate import interp2d
 
 
-def get_merged_r_image(mask_image: np.ndarray):
+def get_merged_r_image(mask_image: np.ndarray, rw, cw):
     """
     Generate merged resistance image
 
     :param mask_image: mask image array
+    :param rw: row pixel width of the sub-image
+    :param cw: column pixel width of the sub-image
     :return: the merged mask image
     """
 
-    sub_image_coord = iterate_sub_image(mask_image, 20, 20)
+    sub_image_coord = iterate_sub_image(mask_image, rw, cw)
     agg_image = np.zeros((sub_image_coord.shape[0], sub_image_coord.shape[1]))
 
     for i in range(sub_image_coord.shape[0]):
@@ -48,7 +51,7 @@ def resize(image, new_shape):
 
     resized_image = image_func(y_new, x_new)
 
-    assert resized_image.shape==new_shape
+    assert resized_image.shape == new_shape
     return resized_image
 
 
@@ -131,7 +134,6 @@ def generate_network(image: np.ndarray, rw: int, cw: int,
 
     r_pixels, c_pixels, _ = coord_set.shape
 
-    # TODO: patch: default illumination
     if illumination is None:
         illumination = np.ones((r_pixels, c_pixels), dtype=np.float)
 
@@ -212,8 +214,8 @@ def generate_network(image: np.ndarray, rw: int, cw: int,
                                                     boundary_x=is_boundary_x, boundary_y=is_boundary_y)
 
     info = dict()
-    info['ynodes'] = c_pixels
-    info['xnodes'] = r_pixels
+    info['ynodes'] = r_pixels
+    info['xnodes'] = c_pixels
     info['debug_image'] = debug_image
 
     return SPICEbody, info
@@ -308,6 +310,7 @@ def solve_dynamic_circuit_quasi3d(vini, vfin, step, Isc, I01, I02, n1, n2, Eg, R
     x = np.arange(xnodes)
     y = np.arange(ynodes)
     Vall = np.zeros((xnodes, ynodes, 2 * junctions, steps + 1))
+    V_junc = np.empty((ynodes, xnodes, steps + 1))
     Vmet = np.zeros((xnodes, ynodes, steps + 1))
     I = np.zeros(steps + 1)
     V = np.zeros(steps + 1)
@@ -318,41 +321,23 @@ def solve_dynamic_circuit_quasi3d(vini, vfin, step, Isc, I01, I02, n1, n2, Eg, R
 
     # The raw results are are a very long chunk of text. We have to clean it and pick just the info we want,
     # that is the voltages at certain nodes.
-    lines = raw_results.split("\n")
-    for line in lines:
-        if len(line) == 0:
-            continue
+    results = parse_output(raw_results)
 
-        if line[:5] == 'Index':
-            headers = line.split()
+    V, I = results['dep#branch']
 
-            if len(headers) >= 4:
-                indices = headers[2][4:13].split('_')
-                junc = int(indices[0])
-                x = int(indices[1])
-                y = int(indices[2])
+    for xx in x:
+        for yy in y:
+            key_name = '(t_0_{:03d}_{:03d})'.format(xx, yy)
+            tempV, tempV2 = results[key_name]
+            V_junc[yy, xx, :] = tempV2
 
-        if line[0] not in '01234567890.':
-            continue
-
-        i, *rest = line.split()
-        i = int(i)
-
-        if len(rest) == 3:
-            Vall[x, y, 2 * junc + 1, i] = float(rest[2])
-            Vall[x, y, 2 * junc, i] = float(rest[1])
-        elif len(rest) == 4:
-            Vall[x, y, 2 * junc + 1, i] = float(rest[2])
-            Vall[x, y, 2 * junc, i] = float(rest[1])
-            Vmet[x, y, i] = float(rest[3])
-        else:
-            V[i] = float(rest[0])
-            I[i] = -float(rest[1])
+    I = -I
 
     # Finally, we un-do the scaling
     I = I / gn
 
-    return V, I, Vall, Vmet
+    # TODO: need to return these things properly, probably through a dict
+    return V, I, Vall, V_junc
 
 
 def solve_quasi_3D(solar_cell, injection, contacts, options=None, Lx=10e-6, Ly=10e-6, h=2e-6, R_back=1e-16,

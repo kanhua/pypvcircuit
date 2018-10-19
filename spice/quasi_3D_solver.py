@@ -88,7 +88,8 @@ def solve_quasi_3D(solar_cell, injection, contacts, options=None, Lx=10e-6, Ly=1
 
 def create_node(type, idx, idy, Lx, Ly, Isc, topLCL, botLCL, rshunt, rseries, xMetalTop, yMetalTop, contact,
                 boundary_x=False,boundary_y=False):
-    """ Creates a node of the solar cell, meaning all the circuit elements at an XY location in the plane. This includes all the diodes, resistances and current sources for all the junctions at that location.
+    """ Creates a node of the solar cell, meaning all the circuit elements at an XY location in the plane.
+    This includes all the diodes, resistances and current sources for all the junctions at that location.
 
     :param type: The type of the node, 'Normal', 'Finger' or 'Bus'
     :param idx: Index with the location in the X direction
