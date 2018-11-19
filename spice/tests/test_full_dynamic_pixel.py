@@ -1,4 +1,6 @@
 import unittest
+import os
+import copy
 import numpy as np
 import matplotlib.pyplot as plt
 from skimage.io import imread, imsave
@@ -13,6 +15,11 @@ from ..dynamic_pixel import solve_quasi_3D
 class MyTestCase(unittest.TestCase):
 
     def setUp(self):
+
+        file_path = os.path.abspath(os.path.dirname(__file__))
+
+        self.output_data_path = os.path.join(file_path, 'test_output_data')
+
         self.T = 298
 
         self.db_junction = Junction(kind='2D', T=self.T, reff=1, jref=300, Eg=0.66, A=1, R_sheet_top=100,
@@ -27,6 +34,7 @@ class MyTestCase(unittest.TestCase):
 
         self.default_illuminationMask = imread(
             '/Users/kanhua/Dropbox/Programming/solcore5/examples/masks_illumination.png')
+
         self.default_contactsMask = imread('/Users/kanhua/Dropbox/Programming/solcore5/examples/masks_sq.png')
 
         # Size of the pixels (m)
@@ -68,8 +76,8 @@ class MyTestCase(unittest.TestCase):
         illumination_mask = illumination_mask[center_x:center_x + 50, center_y:center_y + 50]
         contacts_mask = contacts_mask[center_x:center_x + 50, center_y:center_y + 50]
 
-        imsave("ill1.png", illumination_mask)
-        imsave("contact1.png", contacts_mask)
+        # imsave("ill1.png", illumination_mask)
+        # imsave("contact1.png", contacts_mask)
 
         # For a single junction, this will have >28800 nodes and for the full 3J it will be >86400, so it is worth to
         # exploit symmetries whenever possible. A smaller number of nodes also makes the solver more robust.
@@ -102,12 +110,10 @@ class MyTestCase(unittest.TestCase):
                 result_vi = np.stack((V, I))
             else:
                 result_vi = np.vstack((result_vi, V, I))
-            plt.plot(V, I, label="pw: {}".format(pw))
+            # plt.plot(V, I, label="pw: {}".format(pw))
 
-        # plt.ylim([-0.03, 0])
-        np.savetxt("ingap_iv.csv", result_vi.T, delimiter=',')
-        plt.show()
-
+        # np.savetxt(os.path.join(self.output_data_path, "ingap_iv.csv"), result_vi.T, delimiter=',')
+        # plt.show()
 
     def test_larger_1j_circuit(self):
 
@@ -126,8 +132,8 @@ class MyTestCase(unittest.TestCase):
         illumination_mask = illumination_mask[center_x:, center_y:]
         contacts_mask = contacts_mask[center_x:, center_y:]
 
-        imsave("ill1.png", illumination_mask)
-        imsave("contact1.png", contacts_mask)
+        imsave(os.path.join(self.output_data_path, "ill1.png"), illumination_mask)
+        imsave(os.path.join(self.output_data_path, "contact1.png"), contacts_mask)
 
         # For a single junction, this will have >28800 nodes and for the full 3J it will be >86400, so it is worth to
         # exploit symmetries whenever possible. A smaller number of nodes also makes the solver more robust.
@@ -138,7 +144,7 @@ class MyTestCase(unittest.TestCase):
 
         options = {'light_iv': True, 'wavelength': wl, 'light_source': light_source}
 
-        test_pixel_width = [1, 2, 3, 4]
+        test_pixel_width = [1, 2, 3, 6, 10, 20]
 
         result_vi = None
 
@@ -147,6 +153,7 @@ class MyTestCase(unittest.TestCase):
                                     R_sheet_bot=100,
                                     R_shunt=1e16, n=3.5)
             my_solar_cell = SolarCell([db_junction3], T=self.T)
+
             V, I, Vall, Vmet = solve_quasi_3D(my_solar_cell, illumination_mask, contacts_mask, options=options,
                                               Lx=self.Lx,
                                               Ly=self.Ly,
@@ -156,6 +163,8 @@ class MyTestCase(unittest.TestCase):
                                               bias_end=self.vfin,
                                               bias_step=self.step, sub_cw=pw, sub_rw=pw)
 
+            np.save(os.path.join(self.output_data_path, "vmap_{}.npy").format(pw), Vmet[:, :, -1])
+
             if result_vi is None:
                 result_vi = np.stack((V, I))
             else:
@@ -163,8 +172,11 @@ class MyTestCase(unittest.TestCase):
             plt.plot(V, I, label="pw: {}".format(pw))
 
         # plt.ylim([-0.03, 0])
-        np.savetxt("ingap_iv.csv", result_vi.T, delimiter=',')
-        plt.show()
+        np.savetxt(os.path.join(self.output_data_path, "ingap_iv.csv"), result_vi.T, delimiter=',')
+
+        np.savetxt(os.path.join(self.output_data_path, "ingap_iv.csv"), result_vi.T, delimiter=',')
+
+        plt.savefig(os.path.join(self.output_data_path, "1jfig.png"))
 
 
 if __name__ == '__main__':
