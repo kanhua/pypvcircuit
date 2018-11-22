@@ -113,6 +113,26 @@ def iterate_sub_image(image, rw, cw):
     return coord_set
 
 
+def resize_illumination(illumination, contact_mask, coord_set: np.array, threshold=0):
+    assert illumination.shape == contact_mask.shape
+    light_mask = (contact_mask > threshold)
+
+    filtered_illumination = illumination * light_mask
+
+    r_pixels, c_pixels, _ = coord_set.shape
+
+    resized_illumination = np.empty((r_pixels, c_pixels))
+
+    for c_index in range(c_pixels):
+        for r_index in range(r_pixels):
+            sub_image = filtered_illumination[coord_set[r_index, c_index, 0]:coord_set[r_index, c_index, 1],
+                        coord_set[r_index, c_index, 2]:coord_set[r_index, c_index, 3]]
+
+            resized_illumination[r_index, c_index] = np.sum(sub_image)
+
+    return resized_illumination
+
+
 def generate_network(image: np.ndarray, rw: int, cw: int,
                      illumination: np.ndarray, metal_threshold,
                      isc: np.ndarray,

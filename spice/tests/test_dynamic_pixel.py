@@ -1,14 +1,19 @@
 import unittest
-from ..dynamic_pixel import iterate_sub_image, get_pixel_r, generate_network, get_merged_r_image
-from skimage.io import imread
+from ..dynamic_pixel import iterate_sub_image, get_pixel_r, \
+    generate_network, get_merged_r_image, resize_illumination
+from skimage.io import imread, imsave
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 
 class MyTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.contact_mask = imread('masks_sq.png')
+
+        data_path = os.path.abspath(os.path.dirname(__file__))
+
+        self.contact_mask = imread(os.path.join('masks_sq.png'))
 
     def test_merged_image(self):
         contactsMask = self.contact_mask
@@ -60,6 +65,64 @@ class MyTestCase(unittest.TestCase):
                                      Lx=10e-6, Ly=10e-6, gn=1)
 
         print(spicebody)
+
+    def test_metal_coverage(self):
+        """
+        Test if the ratio of metal coverage is constant before and after down-sampling
+        :return:
+        """
+
+        mask_image = imread(os.path.join("./masks_sq.png"), as_gray=True)
+
+        # eliminate the effects of shading
+        mask_image[mask_image > 1] = 255
+
+        imsave(os.path.join("./masks_sq_no_shades.png"), mask_image)
+
+        metal_covered = (mask_image > 0)
+
+        # portion of metal coverage of original image
+        original_coverage = metal_covered.sum() / metal_covered.size
+
+        # Calculate the coverage of down-samapled image
+
+        widths = [2, 3, 5, 20]
+        for pw in widths:
+            total_metal_coverage = self.get_downsampled_metal_coverage(mask_image, rw=pw, cw=pw)
+            self.assertAlmostEqual(original_coverage, total_metal_coverage, places=5)
+
+    def get_downsampled_metal_coverage(self, mask_image, rw, cw):
+
+        coord_set = iterate_sub_image(mask_image, rw=rw, cw=cw)
+        r_pixels, c_pixels, _ = coord_set.shape
+        total_metal_coverage = 0.0
+
+        for c_index in range(c_pixels):
+            for r_index in range(r_pixels):
+                sub_image = mask_image[coord_set[r_index, c_index, 0]:coord_set[r_index, c_index, 1],
+                            coord_set[r_index, c_index, 2]:coord_set[r_index, c_index, 3]]
+
+                meta_r_x, metal_r_y, metal_coverage = \
+                    get_pixel_r(sub_image, r_x=1, r_y=1, threshold=0)
+
+                total_metal_coverage += metal_coverage * float(sub_image.size)
+
+        total_metal_coverage = total_metal_coverage / float(mask_image.size)
+
+        return total_metal_coverage
+
+    def test_resize_illumination(self):
+
+        illumination = np.ones((10, 10))
+        contact_mask = np.ones((10, 10))
+        contact_mask[2, 2] = 0
+        contact_mask[3, 3] = 0
+
+        coord_set = iterate_sub_image(contact_mask, 2, 2)
+
+        rill = resize_illumination(illumination, contact_mask, coord_set)
+
+        self.assertEqual(np.sum(illumination) - 2, np.sum(rill))
 
 
 if __name__ == '__main__':
