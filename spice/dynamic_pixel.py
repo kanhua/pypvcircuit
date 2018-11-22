@@ -128,7 +128,8 @@ def resize_illumination(illumination, contact_mask, coord_set: np.array, thresho
             sub_image = filtered_illumination[coord_set[r_index, c_index, 0]:coord_set[r_index, c_index, 1],
                         coord_set[r_index, c_index, 2]:coord_set[r_index, c_index, 3]]
 
-            resized_illumination[r_index, c_index] = np.sum(sub_image)
+            #TODO should be np.sum()
+            resized_illumination[r_index, c_index] = np.mean(sub_image)
 
     return resized_illumination
 
@@ -158,7 +159,7 @@ def generate_network(image: np.ndarray, rw: int, cw: int,
         illumination = np.ones((r_pixels, c_pixels), dtype=np.float)
 
     if auto_resize:
-        new_illumination = resize(illumination, (r_pixels, c_pixels))
+        new_illumination = resize_illumination(illumination, image, coord_set, 0)
     else:
         new_illumination = illumination
 
@@ -222,7 +223,7 @@ def generate_network(image: np.ndarray, rw: int, cw: int,
             # we create a normal node
             if metal_coverage > 1e-3:
                 SPICEbody = SPICEbody + create_node('Bus', c_index, r_index, merged_pixel_lx, merged_pixel_ly,
-                                                    Isc=new_illumination[r_index, c_index] * (1 - metal_coverage) * isc,
+                                                    Isc=new_illumination[r_index, c_index] * isc,
                                                     topLCL=rsTop, botLCL=rsBot, rshunt=rshunt, rseries=rseries,
                                                     xMetalTop=meta_r_x, yMetalTop=metal_r_y, contact=agg_contact,
                                                     boundary_x=is_boundary_x, boundary_y=is_boundary_y)

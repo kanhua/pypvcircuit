@@ -1,3 +1,9 @@
+"""
+This set tests the full solar cell equivalent circuit simulation, using the dynamically changing pixels.
+
+
+"""
+
 import unittest
 import os
 import copy
@@ -34,7 +40,7 @@ class FullSimulationWithDynamicPixel(unittest.TestCase):
 
         self.default_illuminationMask = imread(os.path.join(file_path, 'masks_illumination.png'))
 
-        self.default_contactsMask = imread(os.path.join(file_path, 'masks_sq.png'))
+        self.default_contactsMask = imread(os.path.join(file_path, 'masks_sq_no_shades.png'))
 
         # Size of the pixels (m)
         self.Lx = 10e-6
@@ -62,10 +68,12 @@ class FullSimulationWithDynamicPixel(unittest.TestCase):
 
     def test_small_1j(self):
         """
-        Compare isc of different pixel values
+        Test the simulation of 1J diode with 50x50 pixels.
 
         :return:
         """
+
+
         illumination_mask = self.default_illuminationMask
         contacts_mask = self.default_contactsMask
 
@@ -111,18 +119,38 @@ class FullSimulationWithDynamicPixel(unittest.TestCase):
         # plt.show()
 
     def test_larger_1j_circuit(self):
+        """
+        Test 1J cell
+
+        :return:
+        """
 
         db_junction3 = copy.copy(self.db_junction3)
 
         self.run_larger_1j_circuit([db_junction3], "1j")
 
     def test_larger_3j_circuit(self):
+        """
+        Test 3J cell
+
+        :return:
+        """
 
         tj_cell = copy.deepcopy([self.db_junction3, self.db_junction2, self.db_junction])
 
         self.run_larger_1j_circuit(tj_cell, "3j")
 
-    def draw_merged_contact_images(self, test_pws, file_prefix, contact_mask):
+    def draw_merged_contact_images(self, test_pws, file_prefix:str, contact_mask:np.ndarray):
+        """
+        Output an image "{}equiv_r_images.png".format(file_prefix)) to compare the contact images
+        and their merged versions.
+
+        :param test_pws: a list of different pixel widths
+        :param file_prefix: prefix of the file.
+        :param contact_mask: The profile of the metal contact
+        :return:
+        """
+
         fig, ax = plt.subplots(ncols=len(test_pws) + 1, figsize=(8, 6), dpi=300)
         for i, pw in enumerate(test_pws):
             r_image = get_merged_r_image(contact_mask, pw, pw)
