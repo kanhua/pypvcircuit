@@ -1,0 +1,6 @@
+rs_top: !!float 1e-16
+rs_bot: !!float 1e-16
+r_series: !!float 1e-19
+r_shunt: !!float 1e10
+r_contact: !!float 1e-19
+r_line: !!float 1e-19
