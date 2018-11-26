@@ -174,8 +174,8 @@ def create_node(type, idx, idy, Lx, Ly, isc, rs_top, rs_bot,
 
         elif j == 0 and type == 'Bus':
             rcontact = "Rcontact{0} t_{0} m_{0} {1}\n".format(loc, r_contact)
-            rmetalX = "RbusX{0}to{1} m_{0} m_{1} {2}\n".format(loc, locXR, 1e-16)
-            rmetalY = "RbusY{0}to{1} m_{0} m_{1} {2}\n".format(loc, locYR, 1e-16)
+            rmetalX = "RbusX{0}to{1} m_{0} m_{1} {2}\n".format(loc, locXR, x_metal_top / s)
+            rmetalY = "RbusY{0}to{1} m_{0} m_{1} {2}\n".format(loc, locYR, y_metal_top * s)
 
             # This is the connection to the external voltage
             rext = "Rext{0} in m_{0} {1}\n".format(loc, 1e-16)

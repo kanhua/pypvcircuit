@@ -50,12 +50,16 @@ class PixelProcessorTestCase(unittest.TestCase):
         sq = SQCell(1.42, 300, 1)
 
         sps = SPICESolver(solarcell=sq, illumination=self.default_illuminationMask,
-                          metal_contact=self.default_contactsMask, rw=5, cw=5, v_start=self.vini, v_end=self.vfin,
+                          metal_contact=self.default_contactsMask, rw=2, cw=2, v_start=self.vini, v_end=self.vfin,
                           v_steps=self.step,
                           Lx=self.Lx, Ly=self.Ly, h=self.h)
 
         plt.plot(sps.V, -sps.I)
         print(sps.I)
+        plt.show()
+
+        plt.figure()
+        plt.imshow(sps.v_junc[:, :, -1])
         plt.show()
 
 

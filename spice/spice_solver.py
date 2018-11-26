@@ -1,6 +1,6 @@
 import typing
 import numpy as np
-from .dynamic_pixel import iterate_sub_image, resize_illumination
+from .dynamic_pixel import iterate_sub_image, resize_illumination, get_pixel_r
 from .pixel_processor import PixelProcessor
 from .spice import solve_circuit
 from .parse_spice_output import parse_output
@@ -11,7 +11,7 @@ from pypvcell.illumination import load_astm
 class SPICESolver(object):
 
     def __init__(self, solarcell: SolarCell, illumination: np.ndarray, metal_contact,
-                 rw, cw, v_start, v_end, v_steps, Lx, Ly, h):
+                 rw, cw, v_start, v_end, v_steps, Lx, Ly, h,spice_preprocessor=None):
 
         self.solarcell = solarcell
         self.metal_contact = metal_contact
@@ -30,7 +30,10 @@ class SPICESolver(object):
         self.c_node_num = 0
         self.V = None
         self.I = None
+        self.v_junc = None
         self.steps = int(np.floor((self.v_end - self.v_start) / self.v_steps) + 1)
+
+        self.spice_preprocessor=spice_preprocessor
 
         header = self._generate_header()
         nodes = self._genenerate_network()
@@ -42,6 +45,7 @@ class SPICESolver(object):
         self.raw_results = self._send_command()
 
         self._parse_output()
+
 
     def _generate_header(self):
 
@@ -76,9 +80,14 @@ class SPICESolver(object):
             for r_index in range(r_pixels):
                 illumination_value = new_illumination[r_index, c_index]
 
+                sub_image = self.metal_contact[coord_set[r_index, c_index, 0]:coord_set[r_index, c_index, 1],
+                            coord_set[r_index, c_index, 2]:coord_set[r_index, c_index, 3]]
+
                 self.solarcell.set_input_spectrum(illumination_value * self.spectrum)
+
                 px = PixelProcessor(self.solarcell, self.lx, self.ly)
-                spice_body += px.node_string('Bus', c_index, r_index)
+                spice_body += px.node_string(c_index, r_index,
+                                             sub_image=sub_image, lx=self.lx, ly=self.ly)
 
         return spice_body
 
@@ -91,7 +100,7 @@ class SPICESolver(object):
 
         print(self.spice_input)
 
-        raw_results = solve_circuit(spice_file_contents=self.spice_input)
+        raw_results = solve_circuit(spice_file_contents=self.spice_input, postprocess_input=self.spice_preprocessor)
 
         return raw_results
 
@@ -109,3 +118,9 @@ class SPICESolver(object):
                 tempV, tempV2 = results[key_name]
                 assert tempV2.size == V_junc[yy, xx, :].size
                 V_junc[yy, xx, :] = tempV2
+
+        self.v_junc = V_junc
+
+    def get_end_voltage_map(self):
+
+        return self.v_junc[:, :, -1]

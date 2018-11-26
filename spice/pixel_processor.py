@@ -2,6 +2,7 @@ import numpy as np
 from pypvcell.solarcell import SQCell, MJCell, SolarCell
 import yaml
 from .quasi_3D_solver import create_node, create_header
+from .dynamic_pixel import get_pixel_r
 
 
 def _load_solarcell_param(solarcell: SolarCell, param_name) -> np.array:
@@ -44,40 +45,65 @@ class PixelProcessor(object):
         raw_r_shunt = _load_solarcell_param(self.solarcell, 'r_shunt')
 
         # TODO monkey patch
-        raw_r_contact = _load_solarcell_param(self.solarcell, 'r_contact')[0]
-        raw_r_line = _load_solarcell_param(self.solarcell, 'r_line')
+        self.r_contact = _load_solarcell_param(self.solarcell, 'r_contact')[0]
+        self.r_line = _load_solarcell_param(self.solarcell, 'r_line')
         self.eg = _load_solarcell_param(self.solarcell, 'eg')
         self.n1 = _load_solarcell_param(self.solarcell, 'n1')
         self.n2 = _load_solarcell_param(self.solarcell, 'n2')
 
         # gn = np.sqrt(1.0 / raw_isc[0])
         # TODO temporarily disable gn
-        gn = 1
+        self.gn = 1
 
         area_per_pixel = self.lx * self.ly
 
         # TODO There are problems in this normalization
 
-        self._cicuit_params['isc'] = raw_isc * area_per_pixel * gn
+        self._cicuit_params['isc'] = raw_isc * area_per_pixel * self.gn
         # self._cicuit_params['i01'] = raw_i01 * area_per_pixel * gn
         # self._cicuit_params['i02'] = raw_i02 * area_per_pixel * gn
-        self._cicuit_params['rs_top'] = raw_rs_top / gn
-        self._cicuit_params['rs_bot'] = raw_rs_bot / gn
-        self._cicuit_params['r_series'] = raw_r_series / area_per_pixel / gn
-        self._cicuit_params['r_shunt'] = raw_r_shunt / area_per_pixel / gn
-        self._cicuit_params['r_contact'] = raw_r_contact / area_per_pixel / gn
+        self._cicuit_params['rs_top'] = raw_rs_top / self.gn
+        self._cicuit_params['rs_bot'] = raw_rs_bot / self.gn
+        self._cicuit_params['r_series'] = raw_r_series / area_per_pixel / self.gn
+        self._cicuit_params['r_shunt'] = raw_r_shunt / area_per_pixel / self.gn
+        # self._cicuit_params['r_contact'] = raw_r_contact / area_per_pixel / gn
         # self._cicuit_params['r_metal'] = raw_r_line / gn
-        self._cicuit_params['x_metal_top'] = raw_r_line / gn
-        self._cicuit_params['y_metal_top'] = raw_r_line / gn
+        # self._cicuit_params['x_metal_top'] = raw_r_line / gn
+        # self._cicuit_params['y_metal_top'] = raw_r_line / gn
 
-        self.i01 = raw_i01 * area_per_pixel * gn
-        self.i02 = raw_i02 * area_per_pixel * gn
+        self.r_line = self.r_line / self.gn
+
+        self.i01 = raw_i01 * area_per_pixel * self.gn
+        self.i02 = raw_i02 * area_per_pixel * self.gn
+
+        # TODO threshold of metal value
+        self.metal_threshold = 0
 
     def header_string(self):
         return create_header(I01=self.i01, I02=self.i02, n1=self.n1, n2=self.n2, Eg=self.eg)
 
-    def node_string(self, type, idx, idy):
-        return create_node(type, idx=idx, idy=idy, Lx=self.lx, Ly=self.ly,
+    def node_string(self,  idx, idy, sub_image, lx, ly):
+
+        assert sub_image.size > 0
+
+        meta_r_x, metal_r_y, metal_coverage = \
+            get_pixel_r(sub_image, r_x=self.r_line, r_y=self.r_line, threshold=self.metal_threshold)
+
+        merged_pixel_lx = sub_image.shape[1] * lx
+        merged_pixel_ly = sub_image.shape[0] * ly
+
+        merged_pixel_area = merged_pixel_lx * merged_pixel_ly
+
+        if metal_coverage > self.metal_threshold:
+
+            agg_contact = self.r_contact / (merged_pixel_area * metal_coverage) / self.gn
+            type='Bus'
+        else:
+            agg_contact = np.inf
+            type='Normal'
+
+        return create_node(type, idx=idx, idy=idy, Lx=self.lx, Ly=self.ly, x_metal_top=meta_r_x,
+                           y_metal_top=metal_r_y, r_contact=agg_contact,
                            **self._cicuit_params)
 
 
