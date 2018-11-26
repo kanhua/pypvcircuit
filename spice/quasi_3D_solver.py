@@ -86,8 +86,9 @@ def solve_quasi_3D(solar_cell, injection, contacts, options=None, Lx=10e-6, Ly=1
     return V, I, Vall, Vmet
 
 
-def create_node(type, idx, idy, Lx, Ly, Isc, topLCL, botLCL, rshunt, rseries, xMetalTop, yMetalTop, contact,
-                boundary_x=False,boundary_y=False):
+def create_node(type, idx, idy, Lx, Ly, isc, rs_top, rs_bot,
+                r_shunt, r_series, x_metal_top, y_metal_top, r_contact,
+                boundary_x=False, boundary_y=False):
     """ Creates a node of the solar cell, meaning all the circuit elements at an XY location in the plane.
     This includes all the diodes, resistances and current sources for all the junctions at that location.
 
@@ -96,23 +97,24 @@ def create_node(type, idx, idy, Lx, Ly, Isc, topLCL, botLCL, rshunt, rseries, xM
     :param idy: Index with the location in the Y direction
     :param Lx: Pixel size in the X direction
     :param Ly: Pixel size in the Y direction
-    :param Isc: Array of Isc for each of the junctions
-    :param topLCL: Array of resistances of the top lateral conductive layer
-    :param botLCL: Array of resistances of the bottom lateral conductive layers
-    :param rshunt: Array of Rshunt for each of the junctions
-    :param rseries: Array of Rseries for each of the junctions
-    :param xMetalTop: Resistance of the metal in the X direction
-    :param yMetalTop: Resistance of the metal in the Y direction
-    :param contact: Contact resistance
+    :param isc: Array of Isc for each of the junctions
+    :param rs_top: Array of resistances of the top lateral conductive layer
+    :param rs_bot: Array of resistances of the bottom lateral conductive layers
+    :param r_shunt: Array of Rshunt for each of the junctions
+    :param r_series: Array of Rseries for each of the junctions
+    :param x_metal_top: Resistance of the metal in the X direction
+    :param y_metal_top: Resistance of the metal in the Y direction
+    :param r_contact: Contact resistance
     :return: The node define in SPICE file as a string.
     """
     node = ''
-    for j in range(len(Isc)):
+    for j in range(len(isc)):
+        #using zfill
         loc = str(j) + "_" + str(idx).zfill(3) + "_" + str(idy).zfill(3)
         locXR = str(j) + "_" + str(idx + 1).zfill(3) + "_" + str(idy).zfill(3)
         locYR = str(j) + "_" + str(idx).zfill(3) + "_" + str(idy + 1).zfill(3)
 
-        if j + 1 == len(Isc):
+        if j + 1 == len(isc):
             locLow = 0
         else:
             locLow = "t_" + str(j + 1) + "_" + str(idx).zfill(3) + "_" + str(idy).zfill(3)
@@ -127,13 +129,13 @@ def create_node(type, idx, idy, Lx, Ly, Isc, topLCL, botLCL, rshunt, rseries, xM
         diode2 = ""
 
         # Now the shunt resistance
-        rshuntJ = "Rshunt_{0} t_{0} b_{0} {1}\n".format(loc, rshunt[j])
+        rshuntJ = "Rshunt_{0} t_{0} b_{0} {1}\n".format(loc, r_shunt[j])
 
         #TODO: patch 2
         rshuntJ=""
 
         # And add the source
-        source = 'i{0} b_{0} t_{0} {1}\n'.format(loc, Isc[j])
+        source = 'i{0} b_{0} t_{0} {1}\n'.format(loc, isc[j])
 
 
         rbotLCLX=""
@@ -142,19 +144,22 @@ def create_node(type, idx, idy, Lx, Ly, Isc, topLCL, botLCL, rshunt, rseries, xM
         rbotLCLY=""
         rtopLCLY=""
 
+        rtopLCLX = "RtX{0}to{1} t_{0} t_{1} {2}\n".format(loc, locXR, rs_top[j] / s)
+        rtopLCLY = "RtY{0}to{1} t_{0} t_{1} {2}\n".format(loc, locYR, rs_top[j] * s)
+
         if not boundary_x:
             # Now we add the sheet resistances
-            rbotLCLX = "RbX{0}to{1} b_{0} b_{1} {2}\n".format(loc, locXR, botLCL[j] / s)
-            rtopLCLX = "RtX{0}to{1} t_{0} t_{1} {2}\n".format(loc, locXR, topLCL[j] / s)
+            rbotLCLX = "RbX{0}to{1} b_{0} b_{1} {2}\n".format(loc, locXR, rs_bot[j] / s)
+            rtopLCLX = "RtX{0}to{1} t_{0} t_{1} {2}\n".format(loc, locXR, rs_top[j] / s)
 
 
         if not boundary_y:
-            rbotLCLY = "RbY{0}to{1} b_{0} b_{1} {2}\n".format(loc, locYR, botLCL[j] * s)
-            rtopLCLY = "RtY{0}to{1} t_{0} t_{1} {2}\n".format(loc, locYR, topLCL[j] * s)
+            rbotLCLY = "RbY{0}to{1} b_{0} b_{1} {2}\n".format(loc, locYR, rs_bot[j] * s)
+            rtopLCLY = "RtY{0}to{1} t_{0} t_{1} {2}\n".format(loc, locYR, rs_top[j] * s)
 
 
         # Now the series resistance with the back of the junction
-        rseriesJ = "Rseries{0}to{1} b_{0} {1} {2}\n".format(loc, locLow, rseries[j])
+        rseriesJ = "Rseries{0}to{1} b_{0} {1} {2}\n".format(loc, locLow, r_series[j])
 
         #TODO: patch 3
 
@@ -162,13 +167,13 @@ def create_node(type, idx, idy, Lx, Ly, Isc, topLCL, botLCL, rshunt, rseries, xM
 
 
         if j == 0 and type == 'Finger':
-            rcontact = "Rcontact{0} t_{0} m_{0} {1}\n".format(loc, contact)
-            rmetalX = "RbusX{0}to{1} m_{0} m_{1} {2}\n".format(loc, locXR, xMetalTop / s)
-            rmetalY = "RbusY{0}to{1} m_{0} m_{1} {2}\n".format(loc, locYR, yMetalTop * s)
+            rcontact = "Rcontact{0} t_{0} m_{0} {1}\n".format(loc, r_contact)
+            rmetalX = "RbusX{0}to{1} m_{0} m_{1} {2}\n".format(loc, locXR, x_metal_top / s)
+            rmetalY = "RbusY{0}to{1} m_{0} m_{1} {2}\n".format(loc, locYR, y_metal_top * s)
             rext = ""
 
         elif j == 0 and type == 'Bus':
-            rcontact = "Rcontact{0} t_{0} m_{0} {1}\n".format(loc, contact)
+            rcontact = "Rcontact{0} t_{0} m_{0} {1}\n".format(loc, r_contact)
             rmetalX = "RbusX{0}to{1} m_{0} m_{1} {2}\n".format(loc, locXR, 1e-16)
             rmetalY = "RbusY{0}to{1} m_{0} m_{1} {2}\n".format(loc, locYR, 1e-16)
 
@@ -305,19 +310,19 @@ def solve_circuit_quasi3D(vini, vfin, step, Isc, I01, I02, n1, n2, Eg, Rshunt, R
 
             if not shadow[xx, yy]:
                 # we create a normal node
-                SPICEbody = SPICEbody + create_node('Normal', xx, yy, Lx, Ly, Isc=illumination[xx, yy] * isc,
-                                                    topLCL=rsTop, botLCL=rsBot, rshunt=rshunt, rseries=rseries,
-                                                    xMetalTop=metalR, yMetalTop=metalR, contact=contact)
+                SPICEbody = SPICEbody + create_node('Normal', xx, yy, Lx, Ly, isc=illumination[xx, yy] * isc,
+                                                    rs_top=rsTop, rs_bot=rsBot, r_shunt=rshunt, r_series=rseries,
+                                                    x_metal_top=metalR, y_metal_top=metalR, r_contact=contact)
             elif pads[xx, yy]:
                 # we create at bus node, with no resistance in the metal and direct electrical injection
-                SPICEbody = SPICEbody + create_node('Bus', xx, yy, Lx, Ly, Isc=0 * isc, topLCL=rsTop,
-                                                    botLCL=rsBot, rshunt=rshunt, rseries=rseries, xMetalTop=metalR,
-                                                    yMetalTop=metalR, contact=contact)
+                SPICEbody = SPICEbody + create_node('Bus', xx, yy, Lx, Ly, isc=0 * isc, rs_top=rsTop,
+                                                    rs_bot=rsBot, r_shunt=rshunt, r_series=rseries, x_metal_top=metalR,
+                                                    y_metal_top=metalR, r_contact=contact)
             else:
                 # We create a finger node, with resistance in the metal and not direct injection
-                SPICEbody = SPICEbody + create_node('Finger', xx, yy, Lx, Ly, Isc=0 * isc, topLCL=rsTop,
-                                                    botLCL=rsBot, rshunt=rshunt, rseries=rseries, xMetalTop=metalR,
-                                                    yMetalTop=metalR, contact=contact)
+                SPICEbody = SPICEbody + create_node('Finger', xx, yy, Lx, Ly, isc=0 * isc, rs_top=rsTop,
+                                                    rs_bot=rsBot, r_shunt=rshunt, r_series=rseries, x_metal_top=metalR,
+                                                    y_metal_top=metalR, r_contact=contact)
 
     # We combine the different bits to create the SPICE input file
     SPICEcommand = SPICEheader + SPICEbody + SPICEexec + SPICEfooter

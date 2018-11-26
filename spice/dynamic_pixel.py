@@ -134,6 +134,9 @@ def resize_illumination(illumination, contact_mask, coord_set: np.array, thresho
     return resized_illumination
 
 
+
+
+
 def generate_network(image: np.ndarray, rw: int, cw: int,
                      illumination: np.ndarray, metal_threshold,
                      isc: np.ndarray,
@@ -223,15 +226,15 @@ def generate_network(image: np.ndarray, rw: int, cw: int,
             # we create a normal node
             if metal_coverage > 1e-3:
                 SPICEbody = SPICEbody + create_node('Bus', c_index, r_index, merged_pixel_lx, merged_pixel_ly,
-                                                    Isc=new_illumination[r_index, c_index] * isc,
-                                                    topLCL=rsTop, botLCL=rsBot, rshunt=rshunt, rseries=rseries,
-                                                    xMetalTop=meta_r_x, yMetalTop=metal_r_y, contact=agg_contact,
+                                                    isc=new_illumination[r_index, c_index] * isc,
+                                                    rs_top=rsTop, rs_bot=rsBot, r_shunt=rshunt, r_series=rseries,
+                                                    x_metal_top=meta_r_x, y_metal_top=metal_r_y, r_contact=agg_contact,
                                                     boundary_x=is_boundary_x, boundary_y=is_boundary_y)
             else:
                 SPICEbody = SPICEbody + create_node('Normal', c_index, r_index, merged_pixel_lx, merged_pixel_ly,
-                                                    Isc=new_illumination[r_index, c_index] * isc,
-                                                    topLCL=rsTop, botLCL=rsBot, rshunt=rshunt, rseries=rseries,
-                                                    xMetalTop=meta_r_x, yMetalTop=metal_r_y, contact=agg_contact,
+                                                    isc=new_illumination[r_index, c_index] * isc,
+                                                    rs_top=rsTop, rs_bot=rsBot, r_shunt=rshunt, r_series=rseries,
+                                                    x_metal_top=meta_r_x, y_metal_top=metal_r_y, r_contact=agg_contact,
                                                     boundary_x=is_boundary_x, boundary_y=is_boundary_y)
 
     info = dict()
