@@ -47,8 +47,8 @@ class FullSimulationWithDynamicPixel(unittest.TestCase):
 
         # Bias (V)
         self.vini = 0
-        self.vfin = 3.0
-        self.step = 0.01
+        self.vfin = 1.6
+        self.step = 0.05
 
         self.pvcell_1j = SQCell(1.42, 300, 1)
 
@@ -192,10 +192,11 @@ class FullSimulationWithDynamicPixel(unittest.TestCase):
 
         for pw in test_pixel_width:
 
+            from spice.parse_spice_input import reprocess_spice_input
             sps = SPICESolver(solarcell=self.pvcell_1j, illumination=illumination_mask,
                               metal_contact=contacts_mask, rw=pw, cw=pw, v_start=self.vini, v_end=self.vfin,
                               v_steps=self.step,
-                              Lx=self.Lx, Ly=self.Ly, h=self.h, spice_preprocessor=None)
+                              Lx=self.Lx, Ly=self.Ly, h=self.h, spice_preprocessor=reprocess_spice_input)
 
             np.save(os.path.join(self.output_data_path, "{}_vmap_{}.npy").format(file_prefix, pw),
                     sps.get_end_voltage_map())

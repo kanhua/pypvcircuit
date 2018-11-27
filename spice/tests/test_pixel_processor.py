@@ -1,10 +1,12 @@
 import unittest
 from pypvcell.solarcell import SQCell
 from spice.pixel_processor import PixelProcessor
-from spice.spice_solver import SPICESolver
+from spice.spice_solver import SPICESolver, SinglePixelSolver
+from spice.parse_spice_input import reprocess_spice_input
 import os
 from skimage.io import imread, imsave
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 class PixelProcessorTestCase(unittest.TestCase):
@@ -34,7 +36,7 @@ class PixelProcessorTestCase(unittest.TestCase):
 
         # Bias (V)
         self.vini = 0
-        self.vfin = 3.0
+        self.vfin = 1.1
         self.step = 0.01
 
     def test_1(self):
@@ -60,6 +62,23 @@ class PixelProcessorTestCase(unittest.TestCase):
 
         plt.figure()
         plt.imshow(sps.v_junc[:, :, -1])
+        plt.show()
+
+    def test_single_pixel(self):
+        sq = SQCell(1.42, 300, 1)
+
+        sps = SinglePixelSolver(solarcell=sq, illumination=1, v_start=0,
+                                v_end=1.1, v_steps=0.05, Lx=1, Ly=1,
+                                h=self.h,spice_preprocessor=reprocess_spice_input)
+
+        v, i = sq.get_iv(volt=np.linspace(0, 1.1, 250))
+
+        gn = np.sqrt(1.0 / 340)
+
+        print(v, i)
+        plt.plot(v, i)
+        plt.plot(sps.V,-sps.I/gn)
+
         plt.show()
 
 

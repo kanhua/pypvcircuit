@@ -2,8 +2,8 @@ import copy
 import networkx
 import re
 
-def parse_spice_command(command: str):
 
+def parse_spice_command(command: str):
     # parse a SPICE device command into a dict
     name, p_node, n_node, value = command.split()
 
@@ -18,19 +18,19 @@ def parse_spice_command(command: str):
 
     return cmd_atoms
 
-def parse_v_probe(command:str):
 
-    cmd_atoms=dict()
-    pat=".PRINT DC v\((?P<node1>\w+)\) v\((?P<node2>\w+)\)"
+def parse_v_probe(command: str):
+    cmd_atoms = dict()
+    pat = ".PRINT DC v\((?P<node1>\w+)\) v\((?P<node2>\w+)\)"
 
-    match_obj=re.match(pat,command)
+    match_obj = re.match(pat, command)
 
     if match_obj is not None:
-        cmd_atoms['p_node']=match_obj['node1']
-        cmd_atoms['n_node']=match_obj['node2']
+        cmd_atoms['p_node'] = match_obj['node1']
+        cmd_atoms['n_node'] = match_obj['node2']
 
     else:
-        cmd_atoms=None
+        cmd_atoms = None
 
     return cmd_atoms
 
@@ -51,7 +51,6 @@ def is_device(command: str):
 
 
 def add_rep_node(circuit_graph):
-
     shorted_set = list(networkx.connected_components(circuit_graph))
 
     # Every node will have an attribute 'root', every "shorted nodes"
@@ -76,15 +75,13 @@ def add_rep_node(circuit_graph):
 
 
 def reprocess_spice_input(contents: str):
-
-
     commands = contents.splitlines()
 
     shorted_node_g = networkx.Graph()
 
-    new_commands=[]
+    new_commands = []
 
-    reprocessed_output=""
+    reprocessed_output = ""
 
     for c in commands:
         if len(c) == 0:
@@ -105,7 +102,6 @@ def reprocess_spice_input(contents: str):
         else:
             new_commands.append(c)
 
-
     shorted_node_g = add_rep_node(shorted_node_g)
 
     for c in new_commands:
@@ -125,14 +121,13 @@ def reprocess_spice_input(contents: str):
 
             new_cmd_str = "{name} {p_node} {n_node} {value}".format(**dev_cmd)
 
-            reprocessed_output+=(new_cmd_str+"\n")
+            reprocessed_output += (new_cmd_str + "\n")
         elif parse_v_probe(c) is not None:
 
-            dev_cmd=parse_v_probe(c)
+            dev_cmd = parse_v_probe(c)
 
             u = dev_cmd['p_node']
             v = dev_cmd['n_node']
-
 
             if u in shorted_node_g:
                 dev_cmd['p_node'] = shorted_node_g.nodes[u]['root']
@@ -140,17 +135,16 @@ def reprocess_spice_input(contents: str):
             if v in shorted_node_g:
                 dev_cmd['n_node'] = shorted_node_g.nodes[v]['root']
 
-            if dev_cmd['n_node']=='0':
-                new_cmd_str=".PRINT DC v({p_node})".format(**dev_cmd)
+            if dev_cmd['n_node'] == '0':
+                new_cmd_str = ".PRINT DC v({p_node})".format(**dev_cmd)
             else:
 
-                new_cmd_str=".PRINT DC v({p_node}) v({n_node})".format(**dev_cmd)
+                new_cmd_str = ".PRINT DC v({p_node}) v({n_node})".format(**dev_cmd)
 
-            reprocessed_output+=(new_cmd_str+"\n")
+            reprocessed_output += (new_cmd_str + "\n")
 
         else:
-            reprocessed_output+=(c+"\n")
-
+            reprocessed_output += (c + "\n")
 
     return reprocessed_output
 
@@ -160,6 +154,5 @@ if __name__ == "__main__":
     with open(test_file, 'r') as fp:
         contents = fp.read()
 
-
-    output_str=reprocess_spice_input(contents)
+    output_str = reprocess_spice_input(contents)
     print(output_str)

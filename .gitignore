@@ -14,6 +14,8 @@ tmp_out/
 *.psd
 *.ai
 *.indd
+spice_in.txt
+spice_out.txt
 
 .idea/*
 

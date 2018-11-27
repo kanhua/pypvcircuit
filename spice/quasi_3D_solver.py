@@ -109,7 +109,7 @@ def create_node(type, idx, idy, Lx, Ly, isc, rs_top, rs_bot,
     """
     node = ''
     for j in range(len(isc)):
-        #using zfill
+        # using zfill
         loc = str(j) + "_" + str(idx).zfill(3) + "_" + str(idy).zfill(3)
         locXR = str(j) + "_" + str(idx + 1).zfill(3) + "_" + str(idy).zfill(3)
         locYR = str(j) + "_" + str(idx).zfill(3) + "_" + str(idy + 1).zfill(3)
@@ -125,59 +125,58 @@ def create_node(type, idx, idy, Lx, Ly, isc, rs_top, rs_bot,
         diode1 = "d1_{0} t_{0} b_{0} diode1_{1}\n".format(loc, j)
         diode2 = "d2_{0} t_{0} b_{0} diode2_{1}\n".format(loc, j)
 
-        #TODO: patch 1
+        # TODO: patch 1
         diode2 = ""
 
         # Now the shunt resistance
         rshuntJ = "Rshunt_{0} t_{0} b_{0} {1}\n".format(loc, r_shunt[j])
 
-        #TODO: patch 2
-        rshuntJ=""
+        # TODO: patch 2
+        rshuntJ = ""
 
         # And add the source
         source = 'i{0} b_{0} t_{0} {1}\n'.format(loc, isc[j])
 
+        rbotLCLX = ""
+        rtopLCLX = ""
 
-        rbotLCLX=""
-        rtopLCLX=""
+        rbotLCLY = ""
+        rtopLCLY = ""
 
-        rbotLCLY=""
-        rtopLCLY=""
-
-        rtopLCLX = "RtX{0}to{1} t_{0} t_{1} {2}\n".format(loc, locXR, rs_top[j] / s)
-        rtopLCLY = "RtY{0}to{1} t_{0} t_{1} {2}\n".format(loc, locYR, rs_top[j] * s)
 
         if not boundary_x:
             # Now we add the sheet resistances
             rbotLCLX = "RbX{0}to{1} b_{0} b_{1} {2}\n".format(loc, locXR, rs_bot[j] / s)
             rtopLCLX = "RtX{0}to{1} t_{0} t_{1} {2}\n".format(loc, locXR, rs_top[j] / s)
 
-
         if not boundary_y:
             rbotLCLY = "RbY{0}to{1} b_{0} b_{1} {2}\n".format(loc, locYR, rs_bot[j] * s)
             rtopLCLY = "RtY{0}to{1} t_{0} t_{1} {2}\n".format(loc, locYR, rs_top[j] * s)
 
-
         # Now the series resistance with the back of the junction
         rseriesJ = "Rseries{0}to{1} b_{0} {1} {2}\n".format(loc, locLow, r_series[j])
 
-        #TODO: patch 3
+        # TODO: patch 3
 
         rseriesJ = "Rseries{0}to{1} b_{0} {1} {2}\n".format(loc, locLow, 0)
 
+        # TODO patch:
+        x_metal_top = 0
+        y_metal_top = 0
 
         if j == 0 and type == 'Finger':
             rcontact = "Rcontact{0} t_{0} m_{0} {1}\n".format(loc, r_contact)
-            rmetalX = "RbusX{0}to{1} m_{0} m_{1} {2}\n".format(loc, locXR, x_metal_top / s)
-            rmetalY = "RbusY{0}to{1} m_{0} m_{1} {2}\n".format(loc, locYR, y_metal_top * s)
+            rmetalX = "RbusX{0}to{1} m_{0} m_{1} {2}\n".format(loc, locXR, x_metal_top)
+            rmetalY = "RbusY{0}to{1} m_{0} m_{1} {2}\n".format(loc, locYR, y_metal_top)
             rext = ""
 
         elif j == 0 and type == 'Bus':
             rcontact = "Rcontact{0} t_{0} m_{0} {1}\n".format(loc, r_contact)
-            rmetalX = "RbusX{0}to{1} m_{0} m_{1} {2}\n".format(loc, locXR, x_metal_top / s)
-            rmetalY = "RbusY{0}to{1} m_{0} m_{1} {2}\n".format(loc, locYR, y_metal_top * s)
+            rmetalX = "RbusX{0}to{1} m_{0} m_{1} {2}\n".format(loc, locXR, x_metal_top)
+            rmetalY = "RbusY{0}to{1} m_{0} m_{1} {2}\n".format(loc, locYR, y_metal_top)
 
             # This is the connection to the external voltage
+            # TODO: this value wasn't normalized with gn
             rext = "Rext{0} in m_{0} {1}\n".format(loc, 1e-16)
 
         else:
