@@ -160,7 +160,7 @@ def create_node(type, idx, idy, Lx, Ly, isc, rs_top, rs_bot,
 
         rseriesJ = "Rseries{0}to{1} b_{0} {1} {2}\n".format(loc, locLow, 0)
 
-        # TODO patch:
+        # TODO temporarily disabled x_metal_top and y_metal_top
         x_metal_top = 0
         y_metal_top = 0
 
@@ -177,7 +177,7 @@ def create_node(type, idx, idy, Lx, Ly, isc, rs_top, rs_bot,
 
             # This is the connection to the external voltage
             # TODO: this value wasn't normalized with gn
-            rext = "Rext{0} in m_{0} {1}\n".format(loc, 1e-16)
+            rext = "Rext{0} in m_{0} {1}\n".format(loc, 0)
 
         else:
             rcontact = ""

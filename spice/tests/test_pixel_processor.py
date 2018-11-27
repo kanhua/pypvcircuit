@@ -65,19 +65,29 @@ class PixelProcessorTestCase(unittest.TestCase):
         plt.show()
 
     def test_single_pixel(self):
+        """
+        Compare the values between pypvcell (SQCell) and
+        single-pixel network simulation
+
+        :return:
+        """
+
         sq = SQCell(1.42, 300, 1)
 
         sps = SinglePixelSolver(solarcell=sq, illumination=1, v_start=0,
-                                v_end=1.1, v_steps=0.05, Lx=1, Ly=1,
-                                h=self.h,spice_preprocessor=reprocess_spice_input)
+                                v_end=1.1, v_steps=0.01, Lx=1, Ly=1,
+                                h=self.h, spice_preprocessor=reprocess_spice_input)
 
         v, i = sq.get_iv(volt=np.linspace(0, 1.1, 250))
 
-        gn = np.sqrt(1.0 / 340)
+        gn = 1
 
         print(v, i)
-        plt.plot(v, i)
-        plt.plot(sps.V,-sps.I/gn)
+        plt.plot(v, i, label="pypvcell", alpha=0.5)
+        plt.plot(sps.V, -sps.I / gn, label="networksim", alpha=0.5)
+        plt.xlabel("voltage (V)")
+        plt.ylabel("current (A)")
+        plt.legend()
 
         plt.show()
 

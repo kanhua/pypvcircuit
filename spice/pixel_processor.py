@@ -55,9 +55,9 @@ class PixelProcessor(object):
         self.n2 = _load_solarcell_param(self.solarcell, 'n2')
 
         # TODO use dummy isc: because isc is not universal in every pixel
-        self.gn = np.sqrt(1.0 / 340)
+        #self.gn = np.sqrt(1.0 / 340)
         # TODO temporarily disable gn
-        #self.gn = 1
+        self.gn = 1
 
         self.area_per_pixel = self.lx * self.ly
 

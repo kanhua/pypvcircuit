@@ -4,6 +4,44 @@ import re
 
 
 def parse_spice_command(command: str):
+    floating_point_num_pat = "[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?"
+
+    r_pat = '(?P<name>[Rr]\w+)\s+(?P<pnode>\w+)\s+(?P<nnode>\w+)\s+(?P<value>[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)'
+
+    i_pat = '(?P<name>[Ii]\w+)\s+(?P<pnode>\w+)\s+(?P<nnode>\w+)\s+(?P<value>[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)'
+
+    v_pat = '(?P<name>[Vv]\w+)\s+(?P<pnode>\w+)\s+(?P<nnode>\w+)\s+DC\s+(?P<value>[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)'
+
+    #d1_0_000_000 sn1 0 diode1_0
+    d_pat= '(?P<name>[Dd]\w+)\s+(?P<pnode>\w+)\s+(?P<nnode>\w+)\s+(?P<value>\w+)'
+
+    pattern_base = dict()
+
+    pattern_base['v'] = v_pat
+    pattern_base['r'] = r_pat
+    pattern_base['d'] = d_pat
+    pattern_base['i'] = i_pat
+
+    cmd_atoms = dict()
+
+    try:
+        match_obj = re.match(pattern_base[command[0].lower()], command)
+    except ValueError:
+        print("The input command is not valid")
+        return None
+
+    if match_obj is not None:
+        cmd_atoms['name'] = match_obj['name']
+        cmd_atoms['p_node'] = match_obj['pnode']
+        cmd_atoms['n_node'] = match_obj['nnode']
+        cmd_atoms['value'] = match_obj['value']
+        if command[0].lower() in ['v','r','i']:
+            cmd_atoms['value']=float(cmd_atoms['value'])
+
+    return cmd_atoms
+
+
+def parse_spice_command_2(command: str):
     # parse a SPICE device command into a dict
     name, p_node, n_node, value = command.split()
 
@@ -44,7 +82,7 @@ def is_device(command: str):
     # TODO: this line should be more general
     # for now we only assume we only have reisitors (r),
     # diodes (d), voltage (v) and current (i) sources
-    if command[0] in ['R', 'r', 'V', 'd', 'i']:
+    if command[0] in ['R', 'r', 'V', 'd', 'i', 'v']:
         return True
     else:
         return False
