@@ -57,51 +57,6 @@ class FullSimulationWithDynamicPixel(unittest.TestCase):
 
         self.pvcell_1j = SQCell(1.42, 300, 1)
 
-    def test_small_1j(self):
-        """
-        Test the simulation of 1J diode with 50x50 pixels.
-
-        :return:
-        """
-
-        illumination_mask = self.default_illuminationMask
-        contacts_mask = self.default_contactsMask
-
-        nx, ny = illumination_mask.shape
-
-        # For symmetry arguments (not completely true for the illumination), we can mode just 1/4 of the device and then
-        # multiply the current by 4
-        center_x = int(nx / 2)
-        center_y = int(ny / 2)
-        illumination_mask = illumination_mask[center_x:center_x + 50, center_y:center_y + 50]
-        contacts_mask = contacts_mask[center_x:center_x + 50, center_y:center_y + 50]
-
-        # imsave("ill1.png", illumination_mask)
-        # imsave("contact1.png", contacts_mask)
-
-        # For a single junction, this will have >28800 nodes and for the full 3J it will be >86400, so it is worth to
-        # exploit symmetries whenever possible. A smaller number of nodes also makes the solver more robust.
-
-        test_pixel_width = [1, 2, 3, 4]
-
-        result_vi = None
-
-        for pw in test_pixel_width:
-
-            sps = SPICESolver(solarcell=self.pvcell_1j, illumination=illumination_mask,
-                              metal_contact=contacts_mask, rw=pw, cw=pw, v_start=self.vini, v_end=self.vfin,
-                              v_steps=self.step,
-                              Lx=self.Lx, Ly=self.Ly, h=self.h)
-
-            if result_vi is None:
-                result_vi = np.stack((sps.V, sps.I))
-            else:
-                result_vi = np.vstack((result_vi, sps.V, sps.I))
-            # plt.plot(V, I, label="pw: {}".format(pw))
-
-        # np.savetxt(os.path.join(self.output_data_path, "ingap_iv.csv"), result_vi.T, delimiter=',')
-        # plt.show()
-
     def test_larger_1j_circuit(self):
         """
         Test 1J cell

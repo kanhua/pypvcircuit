@@ -1,4 +1,3 @@
-import copy
 import networkx
 import re
 
@@ -12,7 +11,6 @@ def parse_spice_command(command: str):
 
     v_pat = '(?P<name>[Vv]\w+)\s+(?P<pnode>\w+)\s+(?P<nnode>\w+)\s+DC\s+(?P<value>[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)'
 
-    # d1_0_000_000 sn1 0 diode1_0
     d_pat = '(?P<name>[Dd]\w+)\s+(?P<pnode>\w+)\s+(?P<nnode>\w+)\s+(?P<value>\w+)'
 
     pattern_base = dict()
@@ -72,7 +70,15 @@ def is_device(command: str):
         return False
 
 
-def add_rep_node(circuit_graph):
+def add_rep_node(circuit_graph: networkx.Graph)->networkx.Graph:
+    """
+    Find the root of a node and record it to
+    ```circuit_graph.nodes[node]['root'] = node_root```
+
+    :param circuit_graph: the graph that represents the circuit
+    :return: processed circuit graph
+    """
+
     shorted_set = list(networkx.connected_components(circuit_graph))
 
     # Every node will have an attribute 'root', every "shorted nodes"
@@ -97,6 +103,7 @@ def add_rep_node(circuit_graph):
 
 
 class NodeReducer(object):
+
     def __init__(self):
 
         self.shorted_node_g = networkx.Graph()
@@ -106,6 +113,13 @@ class NodeReducer(object):
         return self.shorted_node_g.nodes[node]['root']
 
     def process_spice_input(self, spice_input_contents: str):
+        """
+        Find the commands in the SPICE input string that has zero resistance.
+
+
+        :param spice_input_contents:
+        :return:
+        """
         commands = spice_input_contents.splitlines()
 
         new_commands = []
@@ -181,82 +195,10 @@ class NodeReducer(object):
         return reprocessed_output
 
 
-def reprocess_spice_input(contents: str):
-    commands = contents.splitlines()
+def reprocess_spice_input(spice_input_content: str):
+    nd = NodeReducer()
 
-    shorted_node_g = networkx.Graph()
-
-    new_commands = []
-
-    reprocessed_output = ""
-
-    # Read the input and construct the netwrok graph
-    for c in commands:
-        if len(c) == 0:
-            continue
-
-        if c[0] in ['R', 'r']:
-            r_cmd = parse_spice_command(c)
-            if r_cmd['value'] == 0:
-
-                # we should add nodes first. Otherwise we cannot assign
-                # the attributes of the nodes later
-                shorted_node_g.add_nodes_from([r_cmd['p_node'], r_cmd['n_node']])
-
-                shorted_node_g.add_edge(r_cmd['p_node'], r_cmd['n_node'])
-            else:
-                # resistors that are shorted will be discarded
-                new_commands.append(c)
-        else:
-            new_commands.append(c)
-
-    shorted_node_g = add_rep_node(shorted_node_g)
-
-    # write the processed spice commands
-    for c in new_commands:
-        c = c.lstrip()
-        if len(c) == 0:
-            continue
-
-        if is_device(c):
-            dev_cmd = parse_spice_command(c)
-            u = dev_cmd['p_node']
-            v = dev_cmd['n_node']
-            if u in shorted_node_g:
-                dev_cmd['p_node'] = shorted_node_g.nodes[u]['root']
-
-            if v in shorted_node_g:
-                dev_cmd['n_node'] = shorted_node_g.nodes[v]['root']
-
-            new_cmd_str = "{name} {p_node} {n_node} {value}".format(**dev_cmd)
-
-            reprocessed_output += (new_cmd_str + "\n")
-
-        elif parse_v_probe(c) is not None:
-
-            dev_cmd = parse_v_probe(c)
-
-            u = dev_cmd['p_node']
-            v = dev_cmd['n_node']
-
-            if u in shorted_node_g:
-                dev_cmd['p_node'] = shorted_node_g.nodes[u]['root']
-
-            if v in shorted_node_g:
-                dev_cmd['n_node'] = shorted_node_g.nodes[v]['root']
-
-            if dev_cmd['n_node'] == '0':
-                new_cmd_str = ".PRINT DC v({p_node})".format(**dev_cmd)
-            else:
-
-                new_cmd_str = ".PRINT DC v({p_node}) v({n_node})".format(**dev_cmd)
-
-            reprocessed_output += (new_cmd_str + "\n")
-
-        else:
-            reprocessed_output += (c + "\n")
-
-    return reprocessed_output
+    return nd.process_spice_input(spice_input_content)
 
 
 if __name__ == "__main__":
