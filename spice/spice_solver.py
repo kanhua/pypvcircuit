@@ -169,7 +169,8 @@ class SPICESolver(object):
 
         print(self.spice_input)
 
-        raw_results = solve_circuit(spice_file_contents=self.spice_input, postprocess_input=self.spice_preprocessor)
+        raw_results = solve_circuit(spice_file_contents=self.spice_input,
+                                    postprocess_input=self.spice_preprocessor.process_spice_input)
 
         return raw_results
 
@@ -184,12 +185,15 @@ class SPICESolver(object):
         for xx in np.arange(self.c_node_num):
             for yy in np.arange(self.r_node_num):
                 key_name = '(t_0_{:03d}_{:03d})'.format(xx, yy)
+                if key_name not in results.keys():
+                    key_name = self.spice_preprocessor.find_root(key_name[1:-1])
+                    key_name="("+key_name+")"
                 try:
                     tempV, tempV2 = results[key_name]
                     assert tempV2.size == V_junc[yy, xx, :].size
                     V_junc[yy, xx, :] = tempV2
                 except KeyError:
-                    print("Key error when parsing output")
+                    print("Key error when parsing output (keyname:{})".format(key_name))
                     V_junc[yy, xx, :] = 0
 
         self.v_junc = V_junc

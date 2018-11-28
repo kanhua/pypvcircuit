@@ -12,8 +12,8 @@ def parse_spice_command(command: str):
 
     v_pat = '(?P<name>[Vv]\w+)\s+(?P<pnode>\w+)\s+(?P<nnode>\w+)\s+DC\s+(?P<value>[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)'
 
-    #d1_0_000_000 sn1 0 diode1_0
-    d_pat= '(?P<name>[Dd]\w+)\s+(?P<pnode>\w+)\s+(?P<nnode>\w+)\s+(?P<value>\w+)'
+    # d1_0_000_000 sn1 0 diode1_0
+    d_pat = '(?P<name>[Dd]\w+)\s+(?P<pnode>\w+)\s+(?P<nnode>\w+)\s+(?P<value>\w+)'
 
     pattern_base = dict()
 
@@ -35,8 +35,8 @@ def parse_spice_command(command: str):
         cmd_atoms['p_node'] = match_obj['pnode']
         cmd_atoms['n_node'] = match_obj['nnode']
         cmd_atoms['value'] = match_obj['value']
-        if command[0].lower() in ['v','r','i']:
-            cmd_atoms['value']=float(cmd_atoms['value'])
+        if command[0].lower() in ['v', 'r', 'i']:
+            cmd_atoms['value'] = float(cmd_atoms['value'])
 
     return cmd_atoms
 
@@ -101,9 +101,12 @@ class NodeReducer(object):
 
         self.shorted_node_g = networkx.Graph()
 
+    def find_root(self, node):
 
-    def process_spice_input(self,contents:str):
-        commands = contents.splitlines()
+        return self.shorted_node_g.nodes[node]['root']
+
+    def process_spice_input(self, spice_input_contents: str):
+        commands = spice_input_contents.splitlines()
 
         new_commands = []
 
@@ -176,8 +179,6 @@ class NodeReducer(object):
                 reprocessed_output += (c + "\n")
 
         return reprocessed_output
-
-
 
 
 def reprocess_spice_input(contents: str):
