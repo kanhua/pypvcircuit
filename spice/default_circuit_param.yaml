@@ -2,5 +2,9 @@ rs_top: !!float 1e-16
 rs_bot: !!float 1e-16
 r_series: !!float 1e-19
 r_shunt: !!float 1e10
-r_contact: !!float 1e-19
-r_line: !!float 1e-19
+# contact resistance Ohm-m^2
+r_contact: !!float 0
+# resistivity Ohm m-1
+rho_metal: !!float 2.4e-8
+n1: !!float 1
+n2: !!float 2

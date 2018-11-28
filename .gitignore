@@ -17,6 +17,8 @@ tmp_out/
 spice_in.txt
 spice_out.txt
 
+spice/tests/test_output_data/
+
 .idea/*
 
 # User-specific stuff

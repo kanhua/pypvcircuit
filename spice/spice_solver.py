@@ -96,6 +96,9 @@ class SPICESolver(object):
         self.v_junc = None
         self.steps = int(np.floor((self.v_end - self.v_start) / self.v_steps) + 1)
 
+        # TODO temporarily add gn here
+        self.gn = 1e7
+
         self.spice_preprocessor = spice_preprocessor
 
         header = self._generate_header()
@@ -109,12 +112,14 @@ class SPICESolver(object):
 
         self._parse_output()
 
+        self._renormalize_output()
+
     def _generate_header(self):
 
         # TODO: this is a patch. It should be a representative pixel in illumination profile
         self.solarcell.set_input_spectrum(load_astm("AM1.5g"))
 
-        px = PixelProcessor(self.solarcell, lx=self.lx, ly=self.ly, h=self.finger_h)
+        px = PixelProcessor(self.solarcell, lx=self.lx, ly=self.ly, h=self.finger_h, gn=self.gn)
 
         return px.header_string(pw=self.rw)
 
@@ -145,9 +150,11 @@ class SPICESolver(object):
                 sub_image = self.metal_contact[coord_set[r_index, c_index, 0]:coord_set[r_index, c_index, 1],
                             coord_set[r_index, c_index, 2]:coord_set[r_index, c_index, 3]]
 
+                # set concentration
                 self.solarcell.set_input_spectrum(illumination_value * self.spectrum)
 
-                px = PixelProcessor(self.solarcell, self.lx, self.ly, h=self.finger_h)
+                px = PixelProcessor(self.solarcell, self.lx, self.ly, h=self.finger_h, gn=self.gn)
+
                 spice_body += px.node_string(c_index, r_index,
                                              sub_image=sub_image, lx=self.lx, ly=self.ly)
 
@@ -186,6 +193,11 @@ class SPICESolver(object):
                     V_junc[yy, xx, :] = 0
 
         self.v_junc = V_junc
+
+    def _renormalize_output(self):
+
+        # self.v_junc=self.v_junc*gn
+        self.I = self.I / self.gn
 
     def get_end_voltage_map(self):
 

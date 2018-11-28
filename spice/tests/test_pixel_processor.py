@@ -78,6 +78,8 @@ class PixelProcessorTestCase(unittest.TestCase):
                                 v_end=1.1, v_steps=0.01, Lx=1, Ly=1,
                                 h=self.h, spice_preprocessor=reprocess_spice_input)
 
+        print(sq.j01)
+
         v, i = sq.get_iv(volt=np.linspace(0, 1.1, 250))
 
         gn = 1

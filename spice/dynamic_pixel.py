@@ -129,7 +129,7 @@ def resize_illumination(illumination, contact_mask, coord_set: np.array, thresho
                         coord_set[r_index, c_index, 2]:coord_set[r_index, c_index, 3]]
 
             #TODO should be np.sum()
-            resized_illumination[r_index, c_index] = np.mean(sub_image)
+            resized_illumination[r_index, c_index] = np.sum(sub_image)
 
     return resized_illumination
 

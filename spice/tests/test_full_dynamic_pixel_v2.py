@@ -28,9 +28,12 @@ class FullSimulationWithDynamicPixel(unittest.TestCase):
 
         self.T = 298
 
-        self.default_illuminationMask = imread(os.path.join(file_path, 'masks_illumination.png'))
+        # TODO simplify the illumination mask to np.ones
+        # self.default_illuminationMask = imread(os.path.join(file_path, 'masks_illumination.png'))
 
         self.default_contactsMask = imread(os.path.join(file_path, 'masks_sq_no_shades.png'))
+
+        self.default_illuminationMask = np.ones_like(self.default_contactsMask)
 
         # Size of the pixels (m)
         self.Lx = 10e-6
@@ -47,7 +50,7 @@ class FullSimulationWithDynamicPixel(unittest.TestCase):
 
         # Bias (V)
         self.vini = 0
-        self.vfin = 1.6
+        self.vfin = 1.3
         self.step = 0.05
 
         self.pvcell_1j = SQCell(1.42, 300, 1)
@@ -187,6 +190,10 @@ class FullSimulationWithDynamicPixel(unittest.TestCase):
         self.draw_merged_contact_images(test_pixel_width, file_prefix, contacts_mask)
 
         result_vi = None
+
+        print("original image shape:{},{}".format(*contacts_mask.shape))
+        print("Jsc: {:2f} A/m^2".format(self.pvcell_1j.jsc))
+        print("illumination total {}:".format(illumination_mask.sum()))
 
         plt.figure()
 

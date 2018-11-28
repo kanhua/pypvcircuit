@@ -123,6 +123,7 @@ def create_node(type, idx, idy, Lx, Ly, isc, rs_top, rs_bot,
 
         # We add the diodes
         diode1 = "d1_{0} t_{0} b_{0} diode1_{1}\n".format(loc, j)
+        #diode1=""
         diode2 = "d2_{0} t_{0} b_{0} diode2_{1}\n".format(loc, j)
 
         # TODO: patch 1
@@ -163,6 +164,16 @@ def create_node(type, idx, idy, Lx, Ly, isc, rs_top, rs_bot,
         # TODO temporarily disabled x_metal_top and y_metal_top
         x_metal_top = 0
         y_metal_top = 0
+
+
+        # TODO disable sheet resistance
+        rbotLCLX = ""
+        rtopLCLX = ""
+
+        rbotLCLY = ""
+        rtopLCLY = ""
+
+
 
         if j == 0 and type == 'Finger':
             rcontact = "Rcontact{0} t_{0} m_{0} {1}\n".format(loc, r_contact)
