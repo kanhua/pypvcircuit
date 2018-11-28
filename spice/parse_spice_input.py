@@ -41,22 +41,6 @@ def parse_spice_command(command: str):
     return cmd_atoms
 
 
-def parse_spice_command_2(command: str):
-    # parse a SPICE device command into a dict
-    name, p_node, n_node, value = command.split()
-
-    cmd_atoms = dict()
-    cmd_atoms['name'] = name
-    cmd_atoms['p_node'] = p_node
-    cmd_atoms['n_node'] = n_node
-    if command[0] != 'd':
-        cmd_atoms['value'] = float(value)
-    else:
-        cmd_atoms['value'] = value
-
-    return cmd_atoms
-
-
 def parse_v_probe(command: str):
     cmd_atoms = dict()
     pat = ".PRINT DC v\((?P<node1>\w+)\) v\((?P<node2>\w+)\)"
@@ -112,6 +96,90 @@ def add_rep_node(circuit_graph):
     return circuit_graph
 
 
+class NodeReducer(object):
+    def __init__(self):
+
+        self.shorted_node_g = networkx.Graph()
+
+
+    def process_spice_input(self,contents:str):
+        commands = contents.splitlines()
+
+        new_commands = []
+
+        reprocessed_output = ""
+
+        # Read the input and construct the netwrok graph
+        for c in commands:
+            if len(c) == 0:
+                continue
+
+            if c[0] in ['R', 'r']:
+                r_cmd = parse_spice_command(c)
+                if r_cmd['value'] == 0:
+
+                    # we should add nodes first. Otherwise we cannot assign
+                    # the attributes of the nodes later
+                    self.shorted_node_g.add_nodes_from([r_cmd['p_node'], r_cmd['n_node']])
+
+                    self.shorted_node_g.add_edge(r_cmd['p_node'], r_cmd['n_node'])
+                else:
+                    # resistors that are shorted will be discarded
+                    new_commands.append(c)
+            else:
+                new_commands.append(c)
+
+        shorted_node_g = add_rep_node(self.shorted_node_g)
+
+        # write the processed spice commands
+        for c in new_commands:
+            c = c.lstrip()
+            if len(c) == 0:
+                continue
+
+            if is_device(c):
+                dev_cmd = parse_spice_command(c)
+                u = dev_cmd['p_node']
+                v = dev_cmd['n_node']
+                if u in shorted_node_g:
+                    dev_cmd['p_node'] = shorted_node_g.nodes[u]['root']
+
+                if v in shorted_node_g:
+                    dev_cmd['n_node'] = shorted_node_g.nodes[v]['root']
+
+                new_cmd_str = "{name} {p_node} {n_node} {value}".format(**dev_cmd)
+
+                reprocessed_output += (new_cmd_str + "\n")
+
+            elif parse_v_probe(c) is not None:
+
+                dev_cmd = parse_v_probe(c)
+
+                u = dev_cmd['p_node']
+                v = dev_cmd['n_node']
+
+                if u in shorted_node_g:
+                    dev_cmd['p_node'] = shorted_node_g.nodes[u]['root']
+
+                if v in shorted_node_g:
+                    dev_cmd['n_node'] = shorted_node_g.nodes[v]['root']
+
+                if dev_cmd['n_node'] == '0':
+                    new_cmd_str = ".PRINT DC v({p_node})".format(**dev_cmd)
+                else:
+
+                    new_cmd_str = ".PRINT DC v({p_node}) v({n_node})".format(**dev_cmd)
+
+                reprocessed_output += (new_cmd_str + "\n")
+
+            else:
+                reprocessed_output += (c + "\n")
+
+        return reprocessed_output
+
+
+
+
 def reprocess_spice_input(contents: str):
     commands = contents.splitlines()
 
@@ -121,6 +189,7 @@ def reprocess_spice_input(contents: str):
 
     reprocessed_output = ""
 
+    # Read the input and construct the netwrok graph
     for c in commands:
         if len(c) == 0:
             continue
@@ -142,6 +211,7 @@ def reprocess_spice_input(contents: str):
 
     shorted_node_g = add_rep_node(shorted_node_g)
 
+    # write the processed spice commands
     for c in new_commands:
         c = c.lstrip()
         if len(c) == 0:
@@ -160,6 +230,7 @@ def reprocess_spice_input(contents: str):
             new_cmd_str = "{name} {p_node} {n_node} {value}".format(**dev_cmd)
 
             reprocessed_output += (new_cmd_str + "\n")
+
         elif parse_v_probe(c) is not None:
 
             dev_cmd = parse_v_probe(c)

@@ -17,6 +17,8 @@ from spice.spice_solver import SPICESolver
 from pypvcell.illumination import load_astm
 from ..dynamic_pixel import solve_quasi_3D, get_merged_r_image
 
+from spice.parse_spice_input import reprocess_spice_input, NodeReducer
+
 
 class FullSimulationWithDynamicPixel(unittest.TestCase):
 
@@ -199,11 +201,12 @@ class FullSimulationWithDynamicPixel(unittest.TestCase):
 
         for pw in test_pixel_width:
 
-            from spice.parse_spice_input import reprocess_spice_input
+            nd=NodeReducer()
+
             sps = SPICESolver(solarcell=self.pvcell_1j, illumination=illumination_mask,
                               metal_contact=contacts_mask, rw=pw, cw=pw, v_start=self.vini, v_end=self.vfin,
                               v_steps=self.step,
-                              Lx=self.Lx, Ly=self.Ly, h=self.h, spice_preprocessor=reprocess_spice_input)
+                              Lx=self.Lx, Ly=self.Ly, h=self.h, spice_preprocessor=nd.process_spice_input)
 
             np.save(os.path.join(self.output_data_path, "{}_vmap_{}.npy").format(file_prefix, pw),
                     sps.get_end_voltage_map())
