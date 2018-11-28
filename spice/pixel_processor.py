@@ -97,11 +97,15 @@ class PixelProcessor(object):
 
         merged_pixel_area = merged_pixel_lx * merged_pixel_ly
 
-        self._cicuit_params['isc'] = self.raw_isc * lx*ly * self.gn
+        self._cicuit_params['isc'] = self.raw_isc * lx * ly * self.gn
 
         if metal_coverage > self.metal_threshold:
             agg_contact = self.r_contact / (merged_pixel_area * metal_coverage) / self.gn
-            type = 'Bus'
+            # TODO quick fix on distinguish bus bar and finger
+            if np.max(sub_image) > 250:
+                type = 'Bus'
+            else:
+                type = 'Finger'
         else:
             agg_contact = np.inf
             type = 'Normal'

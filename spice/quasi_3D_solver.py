@@ -188,7 +188,7 @@ def create_node(type, idx, idy, Lx, Ly, isc, rs_top, rs_bot,
 
             # This is the connection to the external voltage
             # TODO: this value wasn't normalized with gn
-            rext = "Rext{0} in m_{0} {1}\n".format(loc, 1e-15)
+            rext = "Rext{0} in m_{0} {1}\n".format(loc, 1e-16)
 
         else:
             rcontact = ""
