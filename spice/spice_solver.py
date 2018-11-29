@@ -97,7 +97,7 @@ class SPICESolver(object):
         self.steps = int(np.floor((self.v_end - self.v_start) / self.v_steps) + 1)
 
         # TODO temporarily add gn here
-        self.gn = 1e7
+        self.gn = self._find_gn()
 
         self.spice_preprocessor = spice_preprocessor
 
@@ -113,6 +113,30 @@ class SPICESolver(object):
         self._parse_output()
 
         self._renormalize_output()
+
+
+    def _find_gn(self):
+        """
+        find an appropriate value of gn
+
+        :return:
+        """
+
+        coord_set = iterate_sub_image(self.metal_contact, self.rw, self.cw)
+
+        r_pixels, c_pixels, _ = coord_set.shape
+
+        new_illumination = resize_illumination(self.illumination, self.metal_contact, coord_set, 0)
+
+        sample_isc=340
+
+        isc=np.max(new_illumination)*sample_isc*self.lx*self.ly
+
+
+        return 1/isc*100
+
+
+
 
     def _generate_header(self):
 

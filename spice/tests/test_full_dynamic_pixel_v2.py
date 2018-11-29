@@ -142,7 +142,7 @@ class FullSimulationWithDynamicPixel(unittest.TestCase):
         imsave(os.path.join(self.output_data_path, "{}_ill1.png".format(file_prefix)), illumination_mask)
         imsave(os.path.join(self.output_data_path, "{}_contact1.png".format(file_prefix)), contacts_mask)
 
-        test_pixel_width = [2, 5, 10]
+        test_pixel_width = [1, 2, 5, 10]
 
         self.draw_merged_contact_images(test_pixel_width, file_prefix, contacts_mask)
 
@@ -156,7 +156,7 @@ class FullSimulationWithDynamicPixel(unittest.TestCase):
 
         for pw in test_pixel_width:
 
-            nd=NodeReducer()
+            nd = NodeReducer()
 
             sps = SPICESolver(solarcell=self.pvcell_1j, illumination=illumination_mask,
                               metal_contact=contacts_mask, rw=pw, cw=pw, v_start=self.vini, v_end=self.vfin,
