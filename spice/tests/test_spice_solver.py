@@ -15,12 +15,15 @@ from skimage.io import imread, imsave
 from pypvcell.solarcell import SQCell, MJCell
 from spice.spice_solver import SPICESolver
 from pypvcell.illumination import load_astm
+from pypvcell.fom import isc
+
 from ..dynamic_pixel import solve_quasi_3D, get_merged_r_image
+from .helper import draw_contact_and_voltage_map, draw_merged_contact_images, get_quater_image
 
 from spice.parse_spice_input import reprocess_spice_input, NodeReducer
 
 
-class FullSimulationWithDynamicPixel(unittest.TestCase):
+class SpiceSolverTest(unittest.TestCase):
 
     def setUp(self):
 
@@ -58,6 +61,40 @@ class FullSimulationWithDynamicPixel(unittest.TestCase):
         self.gaas_1j = SQCell(1.42, 300, 1)
         self.ingap_1j = SQCell(1.87, 300, 1)
 
+    def test_jsc(self):
+
+        self.test_jsc_consistency(pw=5)
+        self.test_jsc_consistency(pw=10)
+
+
+    def test_jsc_consistency(self,pw=5):
+
+        metal_mask = get_quater_image(self.default_contactsMask)
+        illumination_mask = np.ones_like(metal_mask)
+
+        nd = NodeReducer()
+
+        self.gaas_1j.set_input_spectrum(load_astm("AM1.5g"))
+
+        sps = SPICESolver(solarcell=self.gaas_1j, illumination=illumination_mask,
+                          metal_contact=metal_mask, rw=pw, cw=pw, v_start=self.vini, v_end=self.vfin,
+                          v_steps=self.step,
+                          Lx=self.Lx, Ly=self.Ly, h=self.h, spice_preprocessor=nd)
+
+        solver_isc = isc(sps.V, sps.I)
+
+        # calculate the isc by detailed balance model
+        is_metal = np.where(metal_mask > 0, 1, 0)
+
+        # This line is critical: we have to reset the input spectrum of the test 1J gaas cell
+        self.gaas_1j.set_input_spectrum(load_astm("AM1.5g"))
+        estimated_isc = self.gaas_1j.jsc * self.Ly * self.Lx * np.sum(illumination_mask * is_metal)
+
+        print("estimated isc:{}".format(estimated_isc))
+        print("solver isc:{}".format(solver_isc))
+        print("diff: {}".format(estimated_isc - solver_isc))
+        self.assertTrue(np.isclose(float(solver_isc), estimated_isc))
+
     def test_larger_1j_circuit(self):
         """
         Test 1J cell
@@ -85,46 +122,6 @@ class FullSimulationWithDynamicPixel(unittest.TestCase):
 
         self.run_larger_1j_circuit(mj_cell, file_prefix="3j")
 
-    def draw_merged_contact_images(self, test_pws, file_prefix: str, contact_mask: np.ndarray):
-        """
-        Output an image "{}equiv_r_images.png".format(file_prefix)) to compare the contact images
-        and their merged versions.
-
-        :param test_pws: a list of different pixel widths
-        :param file_prefix: prefix of the file.
-        :param contact_mask: The profile of the metal contact
-        :return:
-        """
-
-        fig, ax = plt.subplots(ncols=len(test_pws) + 1, figsize=(8, 6), dpi=300)
-        for i, pw in enumerate(test_pws):
-            r_image = get_merged_r_image(contact_mask, pw, pw)
-            ax[i].imshow(r_image)
-            ax[i].set_title("{} pixels".format(pw))
-        r_image = get_merged_r_image(contact_mask, 1, 1)
-        ax[-1].imshow(r_image)
-        ax[-1].set_title("original")
-        fig.savefig(os.path.join(self.output_data_path, "{}equiv_r_images.png".format(file_prefix)))
-        plt.close(fig)
-
-    def draw_contact_and_voltage_map(self, test_pws, file_prefix: str, contact_mask: np.ndarray):
-
-        fig, ax = plt.subplots(nrows=2, ncols=len(test_pws) + 1, figsize=(8, 6), dpi=300)
-        for i, pw in enumerate(test_pws):
-            r_image = get_merged_r_image(contact_mask, pw, pw)
-            ax[0, i].imshow(r_image)
-            ax[0, i].set_title("{} pixels".format(pw))
-
-            voltage_map = np.load(os.path.join(self.output_data_path, "{}_vmap_{}.npy").format(file_prefix, pw))
-
-            ax[1, i].imshow(voltage_map)
-
-        r_image = get_merged_r_image(contact_mask, 1, 1)
-        ax[0, -1].imshow(r_image)
-        ax[0, -1].set_title("original")
-        fig.savefig(os.path.join(self.output_data_path, "{}_equiv_r_map_images.png".format(file_prefix)))
-        plt.close(fig)
-
     def run_larger_1j_circuit(self, input_solar_cells: SQCell,
                               file_prefix: str, illumination_mask=None, contacts_mask=None):
 
@@ -148,7 +145,7 @@ class FullSimulationWithDynamicPixel(unittest.TestCase):
 
         test_pixel_width = [2, 5, 10]
 
-        self.draw_merged_contact_images(test_pixel_width, file_prefix, contacts_mask)
+        draw_merged_contact_images(self.output_data_path, test_pixel_width, file_prefix, contacts_mask)
 
         result_vi = None
 
@@ -177,7 +174,7 @@ class FullSimulationWithDynamicPixel(unittest.TestCase):
 
             plt.plot(sps.V, sps.I, label="pw: {}".format(pw))
 
-        self.draw_contact_and_voltage_map(test_pixel_width, file_prefix, contacts_mask)
+        draw_contact_and_voltage_map(self.output_data_path, test_pixel_width, file_prefix, contacts_mask)
 
         np.savetxt(os.path.join(self.output_data_path, "{}_ingap_iv.csv".format(file_prefix)), result_vi.T,
                    delimiter=',')

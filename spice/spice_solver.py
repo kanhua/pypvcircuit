@@ -114,7 +114,6 @@ class SPICESolver(object):
 
         self._renormalize_output()
 
-
     def _find_gn(self):
         """
         find an appropriate value of gn
@@ -128,15 +127,11 @@ class SPICESolver(object):
 
         new_illumination = resize_illumination(self.illumination, self.metal_contact, coord_set, 0)
 
-        sample_isc=340
+        sample_isc = 340
 
-        isc=np.max(new_illumination)*sample_isc*self.lx*self.ly
+        isc = np.max(new_illumination) * sample_isc * self.lx * self.ly
 
-
-        return 1/isc*100
-
-
-
+        return 1 / isc * 100
 
     def _generate_header(self):
 
@@ -211,7 +206,7 @@ class SPICESolver(object):
                 key_name = '(t_0_{:03d}_{:03d})'.format(xx, yy)
                 if key_name not in results.keys():
                     key_name = self.spice_preprocessor.find_root(key_name[1:-1])
-                    key_name="("+key_name+")"
+                    key_name = "(" + key_name + ")"
                 try:
                     tempV, tempV2 = results[key_name]
                     assert tempV2.size == V_junc[yy, xx, :].size
