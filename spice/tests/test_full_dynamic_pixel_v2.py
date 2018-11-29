@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import typing
 from skimage.io import imread, imsave
 
-from pypvcell.solarcell import SQCell
+from pypvcell.solarcell import SQCell, MJCell
 from spice.spice_solver import SPICESolver
 from pypvcell.illumination import load_astm
 from ..dynamic_pixel import solve_quasi_3D, get_merged_r_image
@@ -52,10 +52,11 @@ class FullSimulationWithDynamicPixel(unittest.TestCase):
 
         # Bias (V)
         self.vini = 0
-        self.vfin = 1.3
+        self.vfin = 3.0
         self.step = 0.05
 
-        self.pvcell_1j = SQCell(1.42, 300, 1)
+        self.gaas_1j = SQCell(1.42, 300, 1)
+        self.ingap_1j = SQCell(1.87, 300, 1)
 
     def test_larger_1j_circuit(self):
         """
@@ -66,9 +67,9 @@ class FullSimulationWithDynamicPixel(unittest.TestCase):
 
         ill = load_astm("AM1.5g")
 
-        self.pvcell_1j.set_input_spectrum(ill)
+        self.gaas_1j.set_input_spectrum(ill)
 
-        self.run_larger_1j_circuit(self.pvcell_1j, file_prefix="1j")
+        self.run_larger_1j_circuit(self.gaas_1j, file_prefix="1j")
 
     def test_larger_3j_circuit(self):
         """
@@ -77,9 +78,12 @@ class FullSimulationWithDynamicPixel(unittest.TestCase):
         :return:
         """
 
-        tj_cell = copy.deepcopy([self.db_junction3, self.db_junction2, self.db_junction])
+        ill = load_astm("AM1.5g")
 
-        self.run_larger_1j_circuit(tj_cell, "3j")
+        mj_cell = MJCell([self.ingap_1j, self.gaas_1j])
+        mj_cell.set_input_spectrum(ill)
+
+        self.run_larger_1j_circuit(mj_cell, file_prefix="3j")
 
     def draw_merged_contact_images(self, test_pws, file_prefix: str, contact_mask: np.ndarray):
         """
@@ -142,14 +146,14 @@ class FullSimulationWithDynamicPixel(unittest.TestCase):
         imsave(os.path.join(self.output_data_path, "{}_ill1.png".format(file_prefix)), illumination_mask)
         imsave(os.path.join(self.output_data_path, "{}_contact1.png".format(file_prefix)), contacts_mask)
 
-        test_pixel_width = [1, 2, 5, 10]
+        test_pixel_width = [2, 5, 10]
 
         self.draw_merged_contact_images(test_pixel_width, file_prefix, contacts_mask)
 
         result_vi = None
 
         print("original image shape:{},{}".format(*contacts_mask.shape))
-        print("Jsc: {:2f} A/m^2".format(self.pvcell_1j.jsc))
+        print("Jsc: {:2f} A/m^2".format(self.gaas_1j.jsc))
         print("illumination total {}:".format(illumination_mask.sum()))
 
         plt.figure()
@@ -158,7 +162,7 @@ class FullSimulationWithDynamicPixel(unittest.TestCase):
 
             nd = NodeReducer()
 
-            sps = SPICESolver(solarcell=self.pvcell_1j, illumination=illumination_mask,
+            sps = SPICESolver(solarcell=input_solar_cells, illumination=illumination_mask,
                               metal_contact=contacts_mask, rw=pw, cw=pw, v_start=self.vini, v_end=self.vfin,
                               v_steps=self.step,
                               Lx=self.Lx, Ly=self.Ly, h=self.h, spice_preprocessor=nd)
