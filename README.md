@@ -1,11 +1,14 @@
 # Circuit network simulation of solar cells
 
-
-This repository demonstrates how to use solcore5 and ngspice to simulate solar cell in 2D or 3D. The algorithm and the code is partly adapted from [Solcore](https://github.com/dalonsoa/solcore5), but I added a number of my own tweaks. Details are described [here](./docs/calculation_principles.md).
+This repository demonstrates how to use pypvcell and ngspice to simulate solar cell in 2D or 3D. The algorithm and the code is partly adapted from [Solcore](https://github.com/dalonsoa/solcore5), but I added a number of my own tweaks. Details are described [here](./docs/calculation_principles.md).
 
 
 ![network_sim](./doc_images/network_sim.001.jpeg)
 
+
+## Package dependency
+
+You have to install [pypvcell](https://github.com/kanhua/pypvcell) before running this package.
 
 ## Model
 
@@ -26,9 +29,8 @@ The program calculates the value of resistors in each pixel.
 
 ## Known issues
 
-- Simulation of three-junction cell does not work yet.
-- Pixels larger than 50x50 takes time to run and becomes very numercially unstable.
-Some proper approximation is required to deal with very fine fingers.
+- Simulation of multi-junction cell may not be very stable.
+This numerical stability is limited by the chosen SPICE backends. At the moment we only support [NGSpice](http://ngspice.sourceforge.net/)
 
 
 ## Installation

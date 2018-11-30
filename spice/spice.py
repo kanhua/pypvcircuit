@@ -31,6 +31,10 @@ def solve_circuit(spice_file_contents, engine=spice.engine, raw=True, postproces
 
     spice.engine = engine
 
+    with open("spice_in_raw.txt", "w") as f:
+        f.write(spice_file_contents)
+
+
     #post process the input script if necessary
     if postprocess_input is not None:
         spice_file_contents=postprocess_input(spice_file_contents)

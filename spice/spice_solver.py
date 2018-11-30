@@ -186,8 +186,6 @@ class SPICESolver(object):
 
     def _send_command(self):
 
-        print(self.spice_input)
-
         raw_results = solve_circuit(spice_file_contents=self.spice_input,
                                     postprocess_input=self.spice_preprocessor.process_spice_input)
 

@@ -16,6 +16,7 @@ tmp_out/
 *.indd
 spice_in.txt
 spice_out.txt
+spice_in_raw.txt
 
 spice/tests/test_output_data/
 

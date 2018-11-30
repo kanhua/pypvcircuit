@@ -13,11 +13,10 @@ import typing
 from skimage.io import imread, imsave
 
 from pypvcell.solarcell import SQCell, MJCell
-from spice.spice_solver import SPICESolver
+from ..spice_solver import SPICESolver
 from pypvcell.illumination import load_astm
 from pypvcell.fom import isc
 
-from ..dynamic_pixel import solve_quasi_3D, get_merged_r_image
 from .helper import draw_contact_and_voltage_map, draw_merged_contact_images, get_quater_image
 
 from spice.parse_spice_input import reprocess_spice_input, NodeReducer
@@ -68,6 +67,12 @@ class SpiceSolverTest(unittest.TestCase):
 
 
     def test_jsc_consistency(self,pw=5):
+        """
+        Test if jsc calculated by the SPICE solver is equal to the analytical result.
+
+        :param pw: merged pixel width
+        :return:
+        """
 
         metal_mask = get_quater_image(self.default_contactsMask)
         illumination_mask = np.ones_like(metal_mask)
