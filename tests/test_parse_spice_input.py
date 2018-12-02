@@ -33,3 +33,7 @@ class InputParsingTestCase(unittest.TestCase):
 
         self.assertEqual(cmd_atoms['name'], 'i0_000_000')
         self.assertAlmostEqual(cmd_atoms['value'], 320.4295763908701)
+
+
+if __name__ == '__main__':
+    unittest.main()

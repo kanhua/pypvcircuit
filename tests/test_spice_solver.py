@@ -13,7 +13,7 @@ import typing
 from skimage.io import imread, imsave
 
 from pypvcell.solarcell import SQCell, MJCell
-from ..spice_solver import SPICESolver
+from spice.spice_solver import SPICESolver
 from pypvcell.illumination import load_astm
 from pypvcell.fom import isc
 

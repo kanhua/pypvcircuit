@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from ..dynamic_pixel import get_merged_r_image
+from spice.dynamic_pixel import get_merged_r_image
 
 
 def draw_merged_contact_images(output_data_path, test_pws, file_prefix: str, contact_mask: np.ndarray):

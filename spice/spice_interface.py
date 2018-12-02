@@ -8,13 +8,13 @@ import tempfile
 import solcore
 from .parse_spice_input import reprocess_spice_input
 
-class spice:
+class SpiceConfig:
     engine = solcore.config.get('External programs', 'spice')
     input_file = "current_spice.cir"
     output_file = "current_spice.out"
 
 
-def solve_circuit(spice_file_contents, engine=spice.engine, raw=True, postprocess_input=reprocess_spice_input):
+def solve_circuit(spice_file_contents, engine=SpiceConfig.engine, raw=True, postprocess_input=reprocess_spice_input):
     """
     Sends the spice-readable file to the spice engine which will run it and store the data in a temporary folder.
     Once the process is finished, it collects the data and returns it.
@@ -29,7 +29,7 @@ def solve_circuit(spice_file_contents, engine=spice.engine, raw=True, postproces
     :return: depending of the value of raw, this might be all the output of spice or just an array of data
     """
 
-    spice.engine = engine
+    SpiceConfig.engine = engine
 
     with open("spice_in_raw.txt", "w") as f:
         f.write(spice_file_contents)
@@ -42,8 +42,8 @@ def solve_circuit(spice_file_contents, engine=spice.engine, raw=True, postproces
 
     with tempfile.TemporaryDirectory(prefix="tmp", suffix="_sc3NGSPICE") as working_directory:
 
-        spice_file_path = os.path.join(working_directory, spice.input_file)
-        spice_output_path = os.path.join(working_directory, spice.output_file)
+        spice_file_path = os.path.join(working_directory, SpiceConfig.input_file)
+        spice_output_path = os.path.join(working_directory, SpiceConfig.output_file)
 
         with open(spice_file_path, "w") as f:
             f.write(spice_file_contents)
@@ -51,7 +51,7 @@ def solve_circuit(spice_file_contents, engine=spice.engine, raw=True, postproces
         with open("spice_in.txt", "w") as f:
             f.write(spice_file_contents)
 
-        this_process = subprocess.Popen([spice.engine, '-b', spice_file_path, '-o', spice_output_path])
+        this_process = subprocess.Popen([SpiceConfig.engine, '-b', spice_file_path, '-o', spice_output_path])
         this_process.wait()
 
         # this_process = subprocess.run([spice.engine, '-b', spice_file_path, '-o', spice_output_path])
@@ -81,7 +81,7 @@ def solve_circuit(spice_file_contents, engine=spice.engine, raw=True, postproces
             return numpy.array(data).transpose()
 
 
-def get_raw_from_spice(spice_file_contents, engine=spice):
+def get_raw_from_spice(spice_file_contents, engine=SpiceConfig):
     """ Dummy function included for backwards compatibility with solcore3 """
 
     results = solve_circuit(spice_file_contents, engine)
@@ -89,7 +89,7 @@ def get_raw_from_spice(spice_file_contents, engine=spice):
     return results
 
 
-def send_to_spice(spice_file_contents, engine=spice):
+def send_to_spice(spice_file_contents, engine=SpiceConfig):
     """ Dummy function included for backwards compatibility with solcore3 """
 
     results = solve_circuit(spice_file_contents, engine, raw=False)
@@ -99,7 +99,7 @@ def send_to_spice(spice_file_contents, engine=spice):
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
-    engine = spice.engine
+    engine = SpiceConfig.engine
     circuit = """Multiple dc sources
 v1 1 0
 r1 1 0 3.3k

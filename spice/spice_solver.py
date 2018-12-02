@@ -1,9 +1,10 @@
 import typing
 import numpy as np
-from .dynamic_pixel import iterate_sub_image, resize_illumination, get_pixel_r
+from .dynamic_pixel import iterate_sub_image, resize_illumination
 from .pixel_processor import PixelProcessor
-from .spice import solve_circuit
+from .spice_interface import solve_circuit
 from .parse_spice_output import parse_output
+
 from pypvcell.solarcell import SQCell, SolarCell
 from pypvcell.illumination import load_astm
 

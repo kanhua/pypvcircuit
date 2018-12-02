@@ -1,9 +1,11 @@
 import numpy as np
 from solcore.solar_cell_solver import solar_cell_solver
 
-from .quasi_3D_solver import create_node, create_header
-from .spice import solve_circuit
+from spice.pixel_processor import get_pixel_r
+from .spice_interface import solve_circuit
 from .parse_spice_output import parse_output
+
+from .pixel_processor import create_node, create_header
 
 from scipy.interpolate import interp2d
 
@@ -53,42 +55,6 @@ def resize(image, new_shape):
 
     assert resized_image.shape == new_shape
     return resized_image
-
-
-def get_pixel_r(image: np.ndarray, r_x, r_y, threshold):
-    """
-    Calculate the aggregated resistance from a mask profile image
-
-    :param image: an ndarray matrix
-    :param r_x: resistance value per pixel in x-direction (columns, dim=1)
-    :param r_y: resistance value per pixel in y-direction (rows, dim=0)
-    :param threshold: threshold value of a pixel that it is a metal
-    :return: aggregated resistance in x, resistance in y, metal coverage ratio
-    """
-
-    assert image.ndim == 2
-
-    r_mask = np.where(image > threshold, 1, 0)
-
-    # corner case
-    if np.sum(r_mask) == 0:
-        return np.inf, np.inf, 0
-
-    metal_coverage_ratio = np.sum(r_mask).astype(np.float) / (image.shape[0] * image.shape[1])
-
-    row_sum = np.sum(r_mask, axis=0)
-    row_sum_mask = np.where(row_sum == 0, np.inf, 0)
-    row_sum = row_sum_mask + row_sum
-
-    agg_r_y = 1 / np.sum(1 / (row_sum * r_y))
-
-    col_sum = np.sum(r_mask, axis=1)
-    col_sum_mask = np.where(col_sum == 0, np.inf, 0)
-    col_sum = col_sum_mask + col_sum
-
-    agg_r_x = 1 / np.sum(1 / (col_sum * r_x))
-
-    return agg_r_x, agg_r_y, metal_coverage_ratio
 
 
 def iterate_sub_image(image, rw, cw):
@@ -226,16 +192,16 @@ def generate_network(image: np.ndarray, rw: int, cw: int,
             # we create a normal node
             if metal_coverage > 1e-3:
                 SPICEbody = SPICEbody + create_node('Bus', c_index, r_index, merged_pixel_lx, merged_pixel_ly,
-                                                    isc=new_illumination[r_index, c_index] * isc,
-                                                    rs_top=rsTop, rs_bot=rsBot, r_shunt=rshunt, r_series=rseries,
-                                                    x_metal_top=meta_r_x, y_metal_top=metal_r_y, r_contact=agg_contact,
-                                                    boundary_x=is_boundary_x, boundary_y=is_boundary_y)
+                                                    isc=new_illumination[r_index, c_index] * isc, rs_top=rsTop,
+                                                    rs_bot=rsBot, r_shunt=rshunt, r_series=rseries,
+                                                    r_metal_top_r=meta_r_x, r_metal_top_c=metal_r_y, r_contact=agg_contact,
+                                                    boundary_r=is_boundary_x, boundary_c=is_boundary_y)
             else:
                 SPICEbody = SPICEbody + create_node('Normal', c_index, r_index, merged_pixel_lx, merged_pixel_ly,
-                                                    isc=new_illumination[r_index, c_index] * isc,
-                                                    rs_top=rsTop, rs_bot=rsBot, r_shunt=rshunt, r_series=rseries,
-                                                    x_metal_top=meta_r_x, y_metal_top=metal_r_y, r_contact=agg_contact,
-                                                    boundary_x=is_boundary_x, boundary_y=is_boundary_y)
+                                                    isc=new_illumination[r_index, c_index] * isc, rs_top=rsTop,
+                                                    rs_bot=rsBot, r_shunt=rshunt, r_series=rseries,
+                                                    r_metal_top_r=meta_r_x, r_metal_top_c=metal_r_y, r_contact=agg_contact,
+                                                    boundary_r=is_boundary_x, boundary_c=is_boundary_y)
 
     info = dict()
     info['ynodes'] = r_pixels
