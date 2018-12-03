@@ -1,4 +1,4 @@
-import solcore.config_tools as config
+import spice.config_tools as config
 import sys
 
 ngspice_path=sys.argv[1]
