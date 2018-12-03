@@ -5,11 +5,12 @@ import numpy
 import os
 import subprocess
 import tempfile
-import solcore
 from .parse_spice_input import reprocess_spice_input
+from .config_tool import user_config_data
+
 
 class SpiceConfig:
-    engine = solcore.config.get('External programs', 'spice')
+    engine = user_config_data.get('External programs', 'spice')
     input_file = "current_spice.cir"
     output_file = "current_spice.out"
 
@@ -34,11 +35,9 @@ def solve_circuit(spice_file_contents, engine=SpiceConfig.engine, raw=True, post
     with open("spice_in_raw.txt", "w") as f:
         f.write(spice_file_contents)
 
-
-    #post process the input script if necessary
+    # post process the input script if necessary
     if postprocess_input is not None:
-        spice_file_contents=postprocess_input(spice_file_contents)
-
+        spice_file_contents = postprocess_input(spice_file_contents)
 
     with tempfile.TemporaryDirectory(prefix="tmp", suffix="_sc3NGSPICE") as working_directory:
 
@@ -95,6 +94,7 @@ def send_to_spice(spice_file_contents, engine=SpiceConfig):
     results = solve_circuit(spice_file_contents, engine, raw=False)
 
     return results
+
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
