@@ -45,8 +45,8 @@ class PixelProcessorTestCase(unittest.TestCase):
 
         ill = load_astm("AM1.5g")
         sq.set_input_spectrum(ill)
-        px = PixelProcessor(sq, lx=1e-6, ly=1e-6)
-        print(px.node_string())
+        px = PixelProcessor(sq, lr=1e-6, lc=1e-6)
+        print(px.node_string(,,)
 
     def test_2(self):
         sq = SQCell(1.42, 300, 1)
@@ -54,7 +54,7 @@ class PixelProcessorTestCase(unittest.TestCase):
         sps = SPICESolver(solarcell=sq, illumination=self.default_illuminationMask,
                           metal_contact=self.default_contactsMask, rw=2, cw=2, v_start=self.vini, v_end=self.vfin,
                           v_steps=self.step,
-                          Lx=self.Lx, Ly=self.Ly, h=self.h)
+                          l_r=self.Lx, l_c=self.Ly, h=self.h)
 
         plt.plot(sps.V, -sps.I)
         print(sps.I)

@@ -163,7 +163,7 @@ def generate_network(image: np.ndarray, rw: int, cw: int,
 
             # TODO not every sub_image has resistance
             meta_r_x, metal_r_y, metal_coverage = \
-                get_pixel_r(sub_image, r_x=metalR, r_y=metalR, threshold=metal_threshold)
+                get_pixel_r(sub_image, r_row=metalR, r_col=metalR, threshold=metal_threshold)
 
             debug_image[r_index, c_index] = metal_coverage
 

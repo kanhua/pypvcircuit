@@ -46,11 +46,10 @@ class SinglePixelSolver(object):
         self.solarcell.set_input_spectrum(load_astm("AM1.5g") * self.illumination)
 
         px = PixelProcessor(self.solarcell, self.lx, self.ly, h=self.finger_h)
-        return px.node_string(idx=0, idy=0,
-                              sub_image=dummy_image, lx=self.lx, ly=self.ly, is_boundary_x=True, is_boundary_y=True)
+        return px.node_string(id_r=0, id_c=0, sub_image=dummy_image, is_boundary_r=True, is_boundary_c=True)
 
     def _generate_header(self):
-        px = PixelProcessor(self.solarcell, lx=self.lx, ly=self.ly, h=self.finger_h)
+        px = PixelProcessor(self.solarcell, lr=self.lx, lc=self.ly, h=self.finger_h)
 
         return px.header_string(pw=1)
 
@@ -74,7 +73,7 @@ class SinglePixelSolver(object):
 class SPICESolver(object):
 
     def __init__(self, solarcell: SolarCell, illumination: np.ndarray, metal_contact,
-                 rw, cw, v_start, v_end, v_steps, Lx, Ly, h, spice_preprocessor=None):
+                 rw, cw, v_start, v_end, v_steps, l_r, l_c, h, spice_preprocessor=None):
 
         self.solarcell = solarcell
         self.metal_contact = metal_contact
@@ -84,8 +83,8 @@ class SPICESolver(object):
             illumination = np.ones_like(metal_contact, dtype=np.float)
         self.illumination = illumination
         self.spectrum = load_astm("AM1.5g")
-        self.lx = Lx
-        self.ly = Ly
+        self.l_r = l_r
+        self.l_c = l_c
         self.finger_h = h
         self.v_start = v_start
         self.v_end = v_end
@@ -130,7 +129,7 @@ class SPICESolver(object):
 
         sample_isc = 340
 
-        isc = np.max(new_illumination) * sample_isc * self.lx * self.ly
+        isc = np.max(new_illumination) * sample_isc * self.l_r * self.l_c
 
         return 1 / isc * 100
 
@@ -139,7 +138,7 @@ class SPICESolver(object):
         # TODO: this is a patch. It should be a representative pixel in illumination profile
         self.solarcell.set_input_spectrum(load_astm("AM1.5g"))
 
-        px = PixelProcessor(self.solarcell, lx=self.lx, ly=self.ly, h=self.finger_h, gn=self.gn)
+        px = PixelProcessor(self.solarcell, lr=self.l_r, lc=self.l_c, h=self.finger_h, gn=self.gn)
 
         return px.header_string(pw=self.rw)
 
@@ -158,7 +157,7 @@ class SPICESolver(object):
         assert new_illumination.shape == (r_pixels, c_pixels)
 
         self.r_node_num = r_pixels
-        self.c_node_num = r_pixels
+        self.c_node_num = c_pixels
 
         # TODO wrong illumination value here, should fix it
 
@@ -173,10 +172,9 @@ class SPICESolver(object):
                 # set concentration
                 self.solarcell.set_input_spectrum(illumination_value * self.spectrum)
 
-                px = PixelProcessor(self.solarcell, self.lx, self.ly, h=self.finger_h, gn=self.gn)
+                px = PixelProcessor(self.solarcell, self.l_r, self.l_c, h=self.finger_h, gn=self.gn)
 
-                spice_body += px.node_string(c_index, r_index,
-                                             sub_image=sub_image, lx=self.lx, ly=self.ly)
+                spice_body += px.node_string(r_index, c_index, sub_image=sub_image)
 
         return spice_body
 
@@ -200,19 +198,19 @@ class SPICESolver(object):
 
         V_junc = np.empty((self.r_node_num, self.c_node_num, self.steps))
 
-        for xx in np.arange(self.c_node_num):
-            for yy in np.arange(self.r_node_num):
-                key_name = '(t_0_{:03d}_{:03d})'.format(xx, yy)
+        for col_idx in np.arange(self.c_node_num):
+            for row_idx in np.arange(self.r_node_num):
+                key_name = '(t_0_{:03d}_{:03d})'.format(row_idx,col_idx)
                 if key_name not in results.keys():
                     key_name = self.spice_preprocessor.find_root(key_name[1:-1])
                     key_name = "(" + key_name + ")"
                 try:
                     tempV, tempV2 = results[key_name]
-                    assert tempV2.size == V_junc[yy, xx, :].size
-                    V_junc[yy, xx, :] = tempV2
+                    assert tempV2.size == V_junc[row_idx, col_idx, :].size
+                    V_junc[row_idx, col_idx, :] = tempV2
                 except KeyError:
                     print("Key error when parsing output (keyname:{})".format(key_name))
-                    V_junc[yy, xx, :] = 0
+                    V_junc[row_idx, col_idx, :] = 0
 
         self.v_junc = V_junc
 

@@ -26,11 +26,11 @@ def _load_solarcell_param(solarcell: SolarCell, param_name) -> np.array:
 
 class PixelProcessor(object):
 
-    def __init__(self, solarcell: SQCell, lx, ly, h, gn=1):
+    def __init__(self, solarcell: SQCell, lr, lc, h, gn=1):
         self.solarcell = solarcell
         self._cicuit_params = dict()
-        self.lx = lx
-        self.ly = ly
+        self.lr = lr
+        self.lc = lc
         self.finger_h = h
         self.gn = gn
         self._set_circuit_params()
@@ -53,7 +53,7 @@ class PixelProcessor(object):
         self.n1 = _load_solarcell_param(self.solarcell, 'n1')
         self.n2 = _load_solarcell_param(self.solarcell, 'n2')
 
-        self.area_per_pixel = self.lx * self.ly
+        self.area_per_pixel = self.lr * self.lc
 
         # TODO There are problems in this normalization
 
@@ -83,19 +83,19 @@ class PixelProcessor(object):
 
         return create_header(I01=self.i01, I02=self.i02, n1=self.n1, n2=self.n2, Eg=self.eg)
 
-    def node_string(self, idx, idy, sub_image, lx, ly, is_boundary_x=False, is_boundary_y=False):
+    def node_string(self, id_r, id_c, sub_image, is_boundary_r=False, is_boundary_c=False):
 
         assert sub_image.size > 0
 
-        meta_r_x, metal_r_y, metal_coverage = \
-            get_pixel_r(sub_image, r_x=self.r_line, r_y=self.r_line, threshold=self.metal_threshold)
+        r_metal_row, r_metal_col, metal_coverage = \
+            get_pixel_r(sub_image, r_row=self.r_line, r_col=self.r_line, threshold=self.metal_threshold)
 
-        merged_pixel_lx = sub_image.shape[1] * lx
-        merged_pixel_ly = sub_image.shape[0] * ly
+        merged_pixel_lc = sub_image.shape[1] * self.lc
+        merged_pixel_lr = sub_image.shape[0] * self.lr
 
-        merged_pixel_area = merged_pixel_lx * merged_pixel_ly
+        merged_pixel_area = merged_pixel_lc * merged_pixel_lr
 
-        self._cicuit_params['isc'] = self.raw_isc * lx * ly * self.gn
+        self._cicuit_params['isc'] = self.raw_isc * self.lc * self.lr * self.gn
 
         if metal_coverage > self.metal_threshold:
             agg_contact = self.r_contact / (merged_pixel_area * metal_coverage) / self.gn
@@ -108,9 +108,10 @@ class PixelProcessor(object):
             agg_contact = np.inf
             type = 'Normal'
 
-        return create_node(type, idr=idx, idc=idy, l_r=self.lx, l_c=self.ly,
-                           r_metal_top_r=merged_pixel_lx, r_metal_top_c=merged_pixel_ly, r_contact=agg_contact,
-                           boundary_r=is_boundary_x, boundary_c=is_boundary_y, **self._cicuit_params)
+        return create_node(type, idr=id_r, idc=id_c, l_r=merged_pixel_lr, l_c=merged_pixel_lc,
+                           r_metal_top_r=r_metal_row, r_metal_top_c=r_metal_col, r_contact=agg_contact,
+                           boundary_r=is_boundary_r, boundary_c=is_boundary_c, **self._cicuit_params)
+
 
 def create_node(type, idr, idc, l_r, l_c, isc, rs_top, rs_bot,
                 r_shunt, r_series, r_metal_top_r, r_metal_top_c, r_contact,
@@ -151,7 +152,7 @@ def create_node(type, idr, idc, l_r, l_c, isc, rs_top, rs_bot,
 
         # We add the diodes
         diode1 = "d1_{0} t_{0} b_{0} diode1_{1}\n".format(loc, j)
-        #diode1=""
+        # diode1=""
         diode2 = "d2_{0} t_{0} b_{0} diode2_{1}\n".format(loc, j)
 
         # TODO: patch 1
@@ -172,7 +173,6 @@ def create_node(type, idr, idc, l_r, l_c, isc, rs_top, rs_bot,
         rbotLCLY = ""
         rtopLCLY = ""
 
-
         if not boundary_r:
             # Now we add the sheet resistances
             rbotLCLX = "RbX{0}to{1} b_{0} b_{1} {2}\n".format(loc, loc_row_neighbor, rs_bot[j] / s)
@@ -190,18 +190,15 @@ def create_node(type, idr, idc, l_r, l_c, isc, rs_top, rs_bot,
         rseriesJ = "Rseries{0}to{1} b_{0} {1} {2}\n".format(loc, locLow, 0)
 
         # TODO temporarily disabled r_metal_top_r and r_metal_top_c
-        #r_metal_top_r = 0
-        #r_metal_top_c = 0
-
+        # r_metal_top_r = 0
+        # r_metal_top_c = 0
 
         # TODO disable sheet resistance
-        #rbotLCLX = ""
-        #rtopLCLX = ""
+        # rbotLCLX = ""
+        # rtopLCLX = ""
 
-        #rbotLCLY = ""
-        #rtopLCLY = ""
-
-
+        # rbotLCLY = ""
+        # rtopLCLY = ""
 
         if j == 0 and type == 'Finger':
             rcontact = "Rcontact{0} t_{0} m_{0} {1}\n".format(loc, r_contact)
@@ -230,7 +227,7 @@ def create_node(type, idr, idc, l_r, l_c, isc, rs_top, rs_bot,
         else:
             output = ".PRINT DC v(t_{0}) v(b_{0})\n\n".format(loc)
 
-        # and put all the instructtions together
+        # and put all the instructions together
         node = node + diode1 + diode2 + source + rshuntJ + rtopLCLX + rtopLCLY + rbotLCLX + rbotLCLY + rseriesJ + \
                rcontact + rmetalX + rmetalY + rext + output
 
@@ -266,22 +263,23 @@ def create_header(I01, I02, n1, n2, Eg, T=20):
 
     return SPICEheader
 
+
 if __name__ == "__main__":
     sq = SQCell(1.42, 300, 1)
     from pypvcell.illumination import load_astm
 
     ill = load_astm("AM1.5g")
     sq.set_input_spectrum(ill)
-    px = PixelProcessor(sq, lx=1e-6, ly=1e-6)
+    px = PixelProcessor(sq, lr=1e-6, lc=1e-6)
 
 
-def get_pixel_r(image: np.ndarray, r_x, r_y, threshold):
+def get_pixel_r(image: np.ndarray, r_row, r_col, threshold):
     """
     Calculate the aggregated resistance from a mask profile image
 
     :param image: an ndarray matrix
-    :param r_x: resistance value per pixel in x-direction (columns, dim=1)
-    :param r_y: resistance value per pixel in y-direction (rows, dim=0)
+    :param r_col: resistance value per pixel in x-direction (columns, dim=1)
+    :param r_row: resistance value per pixel in y-direction (rows, dim=0)
     :param threshold: threshold value of a pixel that it is a metal
     :return: aggregated resistance in x, resistance in y, metal coverage ratio
     """
@@ -300,12 +298,12 @@ def get_pixel_r(image: np.ndarray, r_x, r_y, threshold):
     row_sum_mask = np.where(row_sum == 0, np.inf, 0)
     row_sum = row_sum_mask + row_sum
 
-    agg_r_y = 1 / np.sum(1 / (row_sum * r_y))
+    agg_r_row = 1 / np.sum(1 / (row_sum * r_row))
 
     col_sum = np.sum(r_mask, axis=1)
     col_sum_mask = np.where(col_sum == 0, np.inf, 0)
     col_sum = col_sum_mask + col_sum
 
-    agg_r_x = 1 / np.sum(1 / (col_sum * r_x))
+    agg_r_col = 1 / np.sum(1 / (col_sum * r_col))
 
-    return agg_r_x, agg_r_y, metal_coverage_ratio
+    return agg_r_col, agg_r_row, metal_coverage_ratio
