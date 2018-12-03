@@ -19,7 +19,7 @@ from pypvcell.fom import isc
 
 from .helper import draw_contact_and_voltage_map, draw_merged_contact_images, get_quater_image
 
-from spice.parse_spice_input import reprocess_spice_input, NodeReducer
+from spice.parse_spice_input import NodeReducer
 
 
 class SpiceSolverTest(unittest.TestCase):
