@@ -83,9 +83,30 @@ class PixelProcessor(object):
 
         return create_header(I01=self.i01, I02=self.i02, n1=self.n1, n2=self.n2, Eg=self.eg)
 
+    def diode_string(self, id_r, id_c, pw):
+
+        # TODO now assuming pw_c=pw_r
+
+        diode_string = ""
+
+        self.i01 = self.raw_i01 * self.area_per_pixel * pw * pw * self.gn
+        self.i02 = self.raw_i02 * self.area_per_pixel * pw * pw * self.gn
+
+        for j in range(self.i01.size):
+            modelDiode1 = ".model diode1_{0}_{4}_{5} d(is={1},n={2},eg={3})\n".format(j, self.i01[j], self.n1[j],
+                                                                                      self.eg[j], id_r, id_c)
+            modelDiode2 = ".model diode2_{0}_{4}_{5} d(is={1},n={2},eg={3})\n".format(j, self.i02[j], self.n2[j],
+                                                                                      self.eg[j], id_r, id_c)
+            diode_string += modelDiode1
+            diode_string += modelDiode2
+
+        return diode_string
+
     def node_string(self, id_r, id_c, sub_image, is_boundary_r=False, is_boundary_c=False):
 
         assert sub_image.size > 0
+
+        diode_string = self.diode_string(id_r, id_c, sub_image.shape[0])
 
         r_metal_row, r_metal_col, metal_coverage = \
             get_pixel_r(sub_image, r_row=self.r_line, r_col=self.r_line, threshold=self.metal_threshold)
@@ -108,9 +129,11 @@ class PixelProcessor(object):
             agg_contact = np.inf
             type = 'Normal'
 
-        return create_node(type, idr=id_r, idc=id_c, l_r=merged_pixel_lr, l_c=merged_pixel_lc,
-                           r_metal_top_r=r_metal_row, r_metal_top_c=r_metal_col, r_contact=agg_contact,
-                           boundary_r=is_boundary_r, boundary_c=is_boundary_c, **self._cicuit_params)
+        node_string = create_node(type, idr=id_r, idc=id_c, l_r=merged_pixel_lr, l_c=merged_pixel_lc,
+                                  r_metal_top_r=r_metal_row, r_metal_top_c=r_metal_col, r_contact=agg_contact,
+                                  boundary_r=is_boundary_r, boundary_c=is_boundary_c, **self._cicuit_params)
+
+        return diode_string + node_string
 
 
 def create_node(type, idr, idc, l_r, l_c, isc, rs_top, rs_bot,
@@ -151,9 +174,8 @@ def create_node(type, idr, idc, l_r, l_c, isc, rs_top, rs_bot,
         s = l_c / l_r
 
         # We add the diodes
-        diode1 = "d1_{0} t_{0} b_{0} diode1_{1}\n".format(loc, j)
-        # diode1=""
-        diode2 = "d2_{0} t_{0} b_{0} diode2_{1}\n".format(loc, j)
+        diode1 = "d1_{0} t_{0} b_{0} diode1_{1}_{2}_{3}\n".format(loc, j, idr, idc)
+        # diode2 = "d2_{0} t_{0} b_{0} diode2_{1}\n".format(loc, j)
 
         # TODO: patch 1
         diode2 = ""
