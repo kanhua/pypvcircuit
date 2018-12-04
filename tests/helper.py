@@ -53,3 +53,15 @@ def get_quater_image(image: np.ndarray):
     center_x = int(nx / 2)
     center_y = int(ny / 2)
     return image[center_x:, center_y:]
+
+
+def gen_profile(nx, ny, bound_ratio, conc=1):
+    total_power_pixel = nx * ny * conc
+    left_bound_x = np.floor(nx * bound_ratio).astype(np.int)
+    left_bound_y = np.floor(ny * bound_ratio).astype(np.int)
+    xp = np.random.randint(0, left_bound_x, size=total_power_pixel)
+    yp = np.random.randint(0, left_bound_y, size=total_power_pixel)
+    zmtx = np.zeros((nx, ny))
+    for i in range(xp.shape[0]):
+        zmtx[xp[i], yp[i]] += 1
+    return zmtx

@@ -17,13 +17,13 @@ from spice.spice_solver import SPICESolver
 from pypvcell.illumination import load_astm
 from pypvcell.fom import isc, ff
 
-from .helper import draw_contact_and_voltage_map, draw_merged_contact_images, get_quater_image
+from .helper import draw_contact_and_voltage_map, draw_merged_contact_images, get_quater_image, gen_profile
 
 from spice.parse_spice_input import NodeReducer
 from spice.util import default_mask
 
 
-class SpiceSolverTest(unittest.TestCase):
+class BeamUniformityTest(unittest.TestCase):
 
     def setUp(self):
         file_path = os.path.abspath(os.path.dirname(__file__))
@@ -60,20 +60,14 @@ class SpiceSolverTest(unittest.TestCase):
         self.gaas_1j = SQCell(1.42, 300, 1)
         self.ingap_1j = SQCell(1.87, 300, 1)
 
-    def test_generate_mask(self):
-        mask_image = default_mask(self.default_contactsMask.shape, 12)
-        self.assertEqual(np.max(mask_image), 255)
 
-        plt.imshow(mask_image)
-        plt.savefig(os.path.join(self.output_data_path, "generated_mask_image.png"))
+    def test_bunch_nonuniformity(self):
 
-    def test_bunch_n_grid(self):
-        self.test_n_grid(grid_n=2, pw=5)
-        self.test_n_grid(grid_n=5, pw=5)
-        self.test_n_grid(grid_n=10, pw=5)
-        self.test_n_grid(grid_n=16, pw=5)
+        self.test_nonuniformity(0.1)
+        self.test_nonuniformity(0.8)
+        self.test_nonuniformity(1.0)
 
-    def test_n_grid(self, grid_n=12, pw=5):
+    def test_nonuniformity(self, bound_ratio):
         """
         Test the solar cell results with different number of fingers
 
@@ -82,10 +76,16 @@ class SpiceSolverTest(unittest.TestCase):
         :return:
         """
 
+        grid_n = 5
+        pw = 5
+
         original_mask_image = default_mask(self.default_contactsMask.shape, finger_n=grid_n)
 
         metal_mask = get_quater_image(original_mask_image)
-        illumination_mask = np.ones_like(metal_mask) * 500
+
+        # concentration should be ramped up to see the fill factor difference. Typically > 100
+        illumination_mask = gen_profile(metal_mask.shape[0],
+                                        metal_mask.shape[1], bound_ratio=bound_ratio,conc=100)
 
         nd = NodeReducer()
 

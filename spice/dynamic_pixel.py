@@ -61,8 +61,6 @@ def iterate_sub_image(image, rw, cw):
 
             end_ci = min(ci[cii] + cw, image.shape[1])
 
-            # tile = image[ri[rii]:end_ri, ci[cii]:end_ci]
-
             coord_set[rii, cii, 0] = ri[rii]
             coord_set[rii, cii, 1] = end_ri
             coord_set[rii, cii, 2] = ci[cii]

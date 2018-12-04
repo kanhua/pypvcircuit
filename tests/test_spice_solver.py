@@ -14,7 +14,7 @@ from skimage.io import imread, imsave
 from pypvcell.solarcell import SQCell, MJCell
 from spice.spice_solver import SPICESolver
 from pypvcell.illumination import load_astm
-from pypvcell.fom import isc
+from pypvcell.fom import isc,ff
 
 from .helper import draw_contact_and_voltage_map, draw_merged_contact_images, get_quater_image
 
@@ -36,7 +36,7 @@ class SpiceSolverTest(unittest.TestCase):
 
         self.default_contactsMask = imread(os.path.join(file_path, 'masks_sq_no_shades.png'))
 
-        self.default_illuminationMask = np.ones_like(self.default_contactsMask)
+        self.default_illuminationMask = np.ones_like(self.default_contactsMask)*100
 
         # Size of the pixels (m)
         self.lr = 10e-5
@@ -154,7 +154,6 @@ class SpiceSolverTest(unittest.TestCase):
         result_vi = None
 
         print("original image shape:{},{}".format(*contacts_mask.shape))
-        print("Jsc: {:2f} A/m^2".format(self.gaas_1j.jsc))
         print("illumination total {}:".format(illumination_mask.sum()))
 
         plt.figure()
@@ -177,6 +176,11 @@ class SpiceSolverTest(unittest.TestCase):
                 result_vi = np.vstack((result_vi, sps.V, sps.I))
 
             plt.plot(sps.V, sps.I, label="pw: {}".format(pw))
+            fill_factor=ff(sps.V,-sps.I)
+
+            print("Jsc: {:2f} A/m^2".format(self.gaas_1j.jsc))
+            print("fill factor of of pw {}: {}".format(pw,fill_factor))
+
 
         draw_contact_and_voltage_map(self.output_data_path, test_pixel_width, file_prefix, contacts_mask)
 
