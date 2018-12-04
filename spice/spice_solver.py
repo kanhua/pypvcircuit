@@ -1,7 +1,7 @@
 import typing
 import numpy as np
 from .dynamic_pixel import iterate_sub_image, resize_illumination
-from .pixel_processor import PixelProcessor
+from .pixel_processor import PixelProcessor, create_header
 from .spice_interface import solve_circuit
 from .parse_spice_output import parse_output
 
@@ -29,7 +29,7 @@ class SinglePixelSolver(object):
 
         self.spice_preprocessor = spice_preprocessor
 
-        header = self._generate_header()
+        header = self._generate_header(temperature=20)
         nodes = self._generate_network()
         exec = self._generate_exec()
         spice_footer = ".end"
@@ -48,10 +48,8 @@ class SinglePixelSolver(object):
         px = PixelProcessor(self.solarcell, self.lx, self.ly, h=self.finger_h)
         return px.node_string(id_r=0, id_c=0, sub_image=dummy_image, is_boundary_r=True, is_boundary_c=True)
 
-    def _generate_header(self):
-        px = PixelProcessor(self.solarcell, lr=self.lx, lc=self.ly, h=self.finger_h)
-
-        return px.header_string(pw=1)
+    def _generate_header(self, temperature):
+        return create_header(T=temperature)
 
     def _generate_exec(self):
         # We prepare the SPICE execution
@@ -101,8 +99,9 @@ class SPICESolver(object):
 
         self.spice_preprocessor = spice_preprocessor
 
-        header = self._generate_header()
-        nodes = self._genenerate_network()
+        # TODO add temperature as an object parameter
+        header = self._generate_header(temperature=20)
+        nodes = self._generate_network()
         exec = self._generate_exec()
         spice_footer = ".end"
 
@@ -133,20 +132,13 @@ class SPICESolver(object):
 
         return 1 / isc * 100
 
-    def _generate_header(self):
+    def _generate_header(self, temperature):
 
-        # TODO: this is a patch. It should be a representative pixel in illumination profile
-        self.solarcell.set_input_spectrum(load_astm("AM1.5g"))
+        return create_header(T=temperature)
 
-        px = PixelProcessor(self.solarcell, lr=self.l_r, lc=self.l_c, h=self.finger_h, gn=self.gn)
+    def _generate_network(self):
 
-        return px.header_string(pw=self.rw)
-
-    def _genenerate_network(self):
-
-        # All Resistanc related information is set here.
-
-        spice_body = """"""
+        spice_body = ""
 
         coord_set = iterate_sub_image(self.metal_contact, self.rw, self.cw)
 
@@ -159,9 +151,6 @@ class SPICESolver(object):
         self.r_node_num = r_pixels
         self.c_node_num = c_pixels
 
-        # TODO wrong illumination value here, should fix it
-
-        # We create the solar cell units and the series resistances at each node
         for c_index in range(c_pixels):
             for r_index in range(r_pixels):
                 illumination_value = new_illumination[r_index, c_index]
@@ -200,7 +189,7 @@ class SPICESolver(object):
 
         for col_idx in np.arange(self.c_node_num):
             for row_idx in np.arange(self.r_node_num):
-                key_name = '(t_0_{:03d}_{:03d})'.format(row_idx,col_idx)
+                key_name = '(t_0_{:03d}_{:03d})'.format(row_idx, col_idx)
                 if key_name not in results.keys():
                     key_name = self.spice_preprocessor.find_root(key_name[1:-1])
                     key_name = "(" + key_name + ")"

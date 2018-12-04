@@ -68,7 +68,7 @@ class SpiceSolverTest(unittest.TestCase):
         plt.savefig(os.path.join(self.output_data_path, "generated_mask_image.png"))
 
     def test_bunch_n_grid(self):
-        #self.test_n_grid(grid_n=2, pw=5)
+        self.test_n_grid(grid_n=2, pw=5)
         self.test_n_grid(grid_n=5, pw=5)
         self.test_n_grid(grid_n=10, pw=5)
         self.test_n_grid(grid_n=15, pw=5)

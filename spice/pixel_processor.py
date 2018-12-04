@@ -83,22 +83,22 @@ class PixelProcessor(object):
 
         return create_header(I01=self.i01, I02=self.i02, n1=self.n1, n2=self.n2, Eg=self.eg)
 
-    def diode_string(self, id_r, id_c, pw):
+    def diode_string(self, id_r, id_c, rw, cw):
 
         # TODO now assuming pw_c=pw_r
 
         diode_string = ""
 
-        self.i01 = self.raw_i01 * self.area_per_pixel * pw * pw * self.gn
-        self.i02 = self.raw_i02 * self.area_per_pixel * pw * pw * self.gn
+        self.i01 = self.raw_i01 * self.area_per_pixel * rw * cw * self.gn
+        self.i02 = self.raw_i02 * self.area_per_pixel * rw * cw * self.gn
 
         for j in range(self.i01.size):
-            modelDiode1 = ".model diode1_{0}_{4}_{5} d(is={1},n={2},eg={3})\n".format(j, self.i01[j], self.n1[j],
-                                                                                      self.eg[j], id_r, id_c)
-            modelDiode2 = ".model diode2_{0}_{4}_{5} d(is={1},n={2},eg={3})\n".format(j, self.i02[j], self.n2[j],
-                                                                                      self.eg[j], id_r, id_c)
-            diode_string += modelDiode1
-            diode_string += modelDiode2
+            diode1_model = ".model diode1_{0}_{4}_{5} d(is={1},n={2},eg={3})\n".format(j, self.i01[j], self.n1[j],
+                                                                                       self.eg[j], id_r, id_c)
+            diode2_model = ".model diode2_{0}_{4}_{5} d(is={1},n={2},eg={3})\n".format(j, self.i02[j], self.n2[j],
+                                                                                       self.eg[j], id_r, id_c)
+            diode_string += diode1_model
+            diode_string += diode2_model
 
         return diode_string
 
@@ -106,7 +106,7 @@ class PixelProcessor(object):
 
         assert sub_image.size > 0
 
-        diode_string = self.diode_string(id_r, id_c, sub_image.shape[0])
+        diode_string = self.diode_string(id_r, id_c, sub_image.shape[0], sub_image.shape[1])
 
         r_metal_row, r_metal_col, metal_coverage = \
             get_pixel_r(sub_image, r_row=self.r_line, r_col=self.r_line, threshold=self.metal_threshold)
@@ -256,34 +256,21 @@ def create_node(type, idr, idc, l_r, l_c, isc, rs_top, rs_bot,
     return node
 
 
-def create_header(I01, I02, n1, n2, Eg, T=20):
-    """ Creates the header of the SPICE file, where the diode models, the temperature and the independent voltage source are defined.
+def create_header(T=20):
+    """ Creates the header of the SPICE file, where the diode models,
+    the temperature and the independent voltage source are defined.
 
-    :param I01: Array of I01 for each of the junctions
-    :param I02: Array of I02 for each of the junctions
-    :param n1: Array of n1 for each of the junctions
-    :param n2: Array of n2 for each of the junctions
-    :param Eg: Array of Eg for each of the junctions
     :param T: Temperature of the device
     :return: The header of the SPICE file as a string.
     """
     title = "*** A SPICE simulation with python\n\n"
 
-    diodes = ""
-    for j in range(len(I01)):
-        modelDiode1 = ".model diode1_{0} d(is={1},n={2},eg={3})\n".format(j, I01[j], n1[j], Eg[j])
-        modelDiode2 = ".model diode2_{0} d(is={1},n={2},eg={3})\n".format(j, I02[j], n2[j], Eg[j])
-
-        diodes = diodes + modelDiode1 + modelDiode2
-
     options = ".OPTIONS TNOM=20 TEMP={0}\n\n".format(T)
-    independent_source = """ 
-    vdep in 0 DC 0
-    """
+    independent_source = "vdep in 0 DC 0 \n"
 
-    SPICEheader = title + diodes + options + independent_source
+    header_string = title + options + independent_source
 
-    return SPICEheader
+    return header_string
 
 
 if __name__ == "__main__":

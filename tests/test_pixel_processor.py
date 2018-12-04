@@ -46,7 +46,7 @@ class PixelProcessorTestCase(unittest.TestCase):
         ill = load_astm("AM1.5g")
         sq.set_input_spectrum(ill)
         px = PixelProcessor(sq, lr=1e-6, lc=1e-6)
-        print(px.node_string(,,)
+
 
     def test_2(self):
         sq = SQCell(1.42, 300, 1)

@@ -6,7 +6,6 @@ This set tests the full solar cell equivalent circuit simulation, using the dyna
 
 import unittest
 import os
-import copy
 import numpy as np
 import matplotlib.pyplot as plt
 import typing
