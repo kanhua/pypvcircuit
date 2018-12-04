@@ -40,8 +40,8 @@ class SpiceSolverTest(unittest.TestCase):
         self.default_illuminationMask = np.ones_like(self.default_contactsMask)
 
         # Size of the pixels (m)
-        self.Lx = 10e-6
-        self.Ly = 10e-6
+        self.lr = 10e-5
+        self.lc = 10e-5
 
         # Height of the metal fingers (m)
         self.h = 2.2e-6
@@ -84,7 +84,7 @@ class SpiceSolverTest(unittest.TestCase):
         sps = SPICESolver(solarcell=self.gaas_1j, illumination=illumination_mask,
                           metal_contact=metal_mask, rw=pw, cw=pw, v_start=self.vini, v_end=self.vfin,
                           v_steps=self.step,
-                          l_r=self.Lx, l_c=self.Ly, h=self.h, spice_preprocessor=nd)
+                          l_r=self.lr, l_c=self.lc, h=self.h, spice_preprocessor=nd)
 
         solver_isc = isc(sps.V, sps.I)
 
@@ -93,7 +93,7 @@ class SpiceSolverTest(unittest.TestCase):
 
         # This line is critical: we have to reset the input spectrum of the test 1J gaas cell
         self.gaas_1j.set_input_spectrum(load_astm("AM1.5g"))
-        estimated_isc = self.gaas_1j.jsc * self.Ly * self.Lx * np.sum(illumination_mask * is_metal)
+        estimated_isc = self.gaas_1j.jsc * self.lc * self.lr * np.sum(illumination_mask * is_metal)
 
         print("estimated isc:{}".format(estimated_isc))
         print("solver isc:{}".format(solver_isc))
@@ -167,7 +167,7 @@ class SpiceSolverTest(unittest.TestCase):
             sps = SPICESolver(solarcell=input_solar_cells, illumination=illumination_mask,
                               metal_contact=contacts_mask, rw=pw, cw=pw, v_start=self.vini, v_end=self.vfin,
                               v_steps=self.step,
-                              l_r=self.Lx, l_c=self.Ly, h=self.h, spice_preprocessor=nd)
+                              l_r=self.lr, l_c=self.lc, h=self.h, spice_preprocessor=nd)
 
             np.save(os.path.join(self.output_data_path, "{}_vmap_{}.npy").format(file_prefix, pw),
                     sps.get_end_voltage_map())

@@ -1,5 +1,7 @@
+import math
 import numpy as np
 import typing
+import warnings
 
 
 def default_mask(image_shape: typing.Tuple[int, int], finger_n: int):
@@ -35,6 +37,9 @@ def add_grid(image: np.ndarray, finger_n, finger_width, margin_c) -> np.ndarray:
     lc = image.shape[1]
 
     finger_width_p = int(finger_width * lc)
+
+    if finger_width_p<1:
+        warnings.warn("The width of the finger is zero",RuntimeWarning)
 
     pitch = lc // finger_n
 
