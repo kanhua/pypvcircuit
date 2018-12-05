@@ -14,13 +14,17 @@ def get_merged_r_image(mask_image: np.ndarray, rw, cw):
     """
 
     sub_image_coord = iterate_sub_image(mask_image, rw, cw)
-    agg_image = np.zeros((sub_image_coord.shape[0], sub_image_coord.shape[1]))
+    agg_image = get_merged_r_image_from_coordset(mask_image, sub_image_coord)
 
+    return agg_image
+
+
+def get_merged_r_image_from_coordset(mask_image, sub_image_coord):
+    agg_image = np.zeros((sub_image_coord.shape[0], sub_image_coord.shape[1]))
     for i in range(sub_image_coord.shape[0]):
         for j in range(sub_image_coord.shape[1]):
             a, b, c, d = sub_image_coord[i, j, :]
             agg_image[i, j] = np.sum(mask_image[a:b, c:d])
-
     return agg_image
 
 
@@ -32,7 +36,7 @@ def resize(image, new_shape):
     :param new_shape: target array shape tuple(new_x_dim,new_y_dim)
     :return: the resized image
     """
-    warnings.warn("Use resize_illumination() instead",DeprecationWarning)
+    warnings.warn("Use resize_illumination() instead", DeprecationWarning)
 
     assert image.ndim == 2
 
@@ -56,8 +60,13 @@ def iterate_sub_image(image, rw, cw):
     ri = np.arange(0, image.shape[0], rw, dtype=np.int)
     ci = np.arange(0, image.shape[1], cw, dtype=np.int)
 
-    coord_set = np.empty((ri.shape[0], ci.shape[0], 4), dtype=np.uint)
+    coord_set = convert_boundary_to_coordset(ci, cw, image, ri, rw)
 
+    return coord_set
+
+
+def convert_boundary_to_coordset(ci, cw, image, ri, rw):
+    coord_set = np.empty((ri.shape[0], ci.shape[0], 4), dtype=np.uint)
     for rii in np.arange(0, ri.shape[0], 1):
         for cii in np.arange(0, ci.shape[0], 1):
             end_ri = min(ri[rii] + rw, image.shape[0])
@@ -68,7 +77,6 @@ def iterate_sub_image(image, rw, cw):
             coord_set[rii, cii, 1] = end_ri
             coord_set[rii, cii, 2] = ci[cii]
             coord_set[rii, cii, 3] = end_ci
-
     return coord_set
 
 
@@ -90,5 +98,3 @@ def resize_illumination(illumination, contact_mask, coord_set: np.array, thresho
             resized_illumination[r_index, c_index] = np.sum(sub_image)
 
     return resized_illumination
-
-

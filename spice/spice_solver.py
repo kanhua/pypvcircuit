@@ -1,6 +1,6 @@
 import typing
 import numpy as np
-from .dynamic_pixel import iterate_sub_image, resize_illumination
+from .meshing import iterate_sub_image, resize_illumination
 from .pixel_processor import PixelProcessor, create_header
 from .spice_interface import solve_circuit
 from .parse_spice_output import parse_output

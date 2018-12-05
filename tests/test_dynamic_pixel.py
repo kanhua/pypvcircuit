@@ -1,5 +1,5 @@
 import unittest
-from spice.dynamic_pixel import iterate_sub_image, get_merged_r_image, resize_illumination
+from spice.meshing import iterate_sub_image, get_merged_r_image, resize_illumination
 from spice.pixel_processor import get_pixel_r
 from skimage.io import imread, imsave
 import numpy as np
@@ -32,7 +32,9 @@ class MyTestCase(unittest.TestCase):
 
     def test_draw_image(self):
 
-        self.draw_grids_on_image(self.contact_mask, rw=5, cw=5)
+        fig,ax=plt.subplots(ncols=1,nrows=1)
+        self.draw_grids_on_image(ax,self.contact_mask, rw=5, cw=5)
+        plt.show()
 
     def test_merge_pixel(self):
         small_tile = np.ones((5, 5), dtype=np.float)
