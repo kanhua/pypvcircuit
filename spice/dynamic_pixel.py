@@ -1,3 +1,4 @@
+import warnings
 import numpy as np
 from scipy.interpolate import interp2d
 
@@ -31,6 +32,8 @@ def resize(image, new_shape):
     :param new_shape: target array shape tuple(new_x_dim,new_y_dim)
     :return: the resized image
     """
+    warnings.warn("Use resize_illumination() instead",DeprecationWarning)
+
     assert image.ndim == 2
 
     # corner case
