@@ -1,5 +1,6 @@
 import math
 import warnings
+import typing
 import numpy as np
 from scipy.interpolate import interp2d
 
@@ -102,23 +103,49 @@ def resize_illumination(illumination, contact_mask, coord_set: np.array, thresho
 
 
 class MeshGenerator(object):
+    """
+    A class that handles the meshing.
 
-    def __init__(self,image_shape:np.ndarray,rw:int,cw:int):
+    ci is the sequence of the selected row index, i.e., the position of the meshgrid on original image index.
+    For example, if the original image is 10x10 and the initial step size is 2, then
+    ci is 0, 2, 4, 6, 8, and same as ri.
 
 
-        self.r_hist=[]
-        self.c_hist=[]
+    """
+
+    def __init__(self, image_shape: typing.Tuple[int, int], rw: int, cw: int):
+
+        # historical mesh data saved here after running refine()
+        self.r_hist = []
+        self.c_hist = []
 
         self.current_ri = np.arange(0, image_shape[0], rw, dtype=np.int)
         self.current_ci = np.arange(0, image_shape[1], cw, dtype=np.int)
 
+    def ci(self):
+        return self.current_ci
 
-    def refine(self,y,delta_y,dim:int):
+    def ri(self):
+        return self.current_ri
 
-        assert (dim==0 or dim==1)
+    def refine(self, y, delta_y, dim: int):
 
-        #TODO single_step_remeshing does not seem to be correct here
-        nx=single_step_remeshing(x,y,delta_y,interp_func=middle_point_ceil)
+        assert (dim == 0 or dim == 1)
+
+        # xg is original index
+        if dim == 0:
+            xg = self.current_ri
+            self.r_hist.append(np.copy(self.current_ri))
+        else:
+            xg = self.current_ci
+            self.c_hist.append(np.copy(self.current_ci))
+
+        nx = single_step_remeshing(xg, y, delta_y, interp_func=middle_point_ceil)
+
+        if dim == 0:
+            self.current_ri = nx
+        else:
+            self.current_ci = nx
 
 
 def single_step_remeshing(x, y, delta_y, interp_func):
