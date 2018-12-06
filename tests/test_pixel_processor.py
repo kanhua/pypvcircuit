@@ -2,7 +2,7 @@ import unittest
 from pypvcell.solarcell import SQCell
 from spice.pixel_processor import PixelProcessor
 from spice.spice_solver import SPICESolver, SinglePixelSolver
-from spice.parse_spice_input import reprocess_spice_input
+from spice.parse_spice_input import reprocess_spice_input, NodeReducer
 import os
 from skimage.io import imread, imsave
 import matplotlib.pyplot as plt
@@ -47,7 +47,6 @@ class PixelProcessorTestCase(unittest.TestCase):
         sq.set_input_spectrum(ill)
         px = PixelProcessor(sq, lr=1e-6, lc=1e-6)
 
-
     def test_2(self):
         sq = SQCell(1.42, 300, 1)
 
@@ -74,19 +73,19 @@ class PixelProcessorTestCase(unittest.TestCase):
 
         sq = SQCell(1.42, 300, 1)
 
+        nd = NodeReducer()
+
         sps = SinglePixelSolver(solarcell=sq, illumination=1, v_start=0,
-                                v_end=1.1, v_steps=0.01, Lx=1, Ly=1,
-                                h=self.h, spice_preprocessor=reprocess_spice_input)
+                                v_end=1.1, v_steps=0.01, l_r=1, l_c=1,
+                                h=self.h, spice_preprocessor=nd)
 
         print(sq.j01)
 
         v, i = sq.get_iv(volt=np.linspace(0, 1.1, 250))
 
-        gn = 1
-
         print(v, i)
         plt.plot(v, i, label="pypvcell", alpha=0.5)
-        plt.plot(sps.V, -sps.I / gn, label="networksim", alpha=0.5)
+        plt.plot(sps.V, -sps.I, label="networksim", alpha=0.5)
         plt.xlabel("voltage (V)")
         plt.ylabel("current (A)")
         plt.legend()

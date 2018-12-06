@@ -9,65 +9,6 @@ from pypvcell.solarcell import SQCell, SolarCell
 from pypvcell.illumination import load_astm
 
 
-class SinglePixelSolver(object):
-
-    def __init__(self, solarcell: SolarCell, illumination, v_start,
-                 v_end, v_steps, Lx, Ly, h, spice_preprocessor=None):
-        self.solarcell = solarcell
-
-        self.lx = Lx
-        self.ly = Ly
-        self.finger_h = h
-        self.illumination = illumination
-
-        self.v_start = v_start
-        self.v_end = v_end
-        self.v_steps = v_steps
-
-        self.V = None
-        self.I = None
-
-        self.spice_preprocessor = spice_preprocessor
-
-        header = self._generate_header(temperature=20)
-        nodes = self._generate_network()
-        exec = self._generate_exec()
-        spice_footer = ".end"
-
-        self.spice_input = header + nodes + exec + spice_footer
-
-        self.raw_results = self._send_command()
-
-        self._parse_output()
-
-    def _generate_network(self):
-        dummy_image = np.array([[1]])
-
-        self.solarcell.set_input_spectrum(load_astm("AM1.5g") * self.illumination)
-
-        px = PixelProcessor(self.solarcell, self.lx, self.ly, h=self.finger_h)
-        return px.node_string(id_r=0, id_c=0, sub_image=dummy_image, is_boundary_r=True, is_boundary_c=True)
-
-    def _generate_header(self, temperature):
-        return create_header(T=temperature)
-
-    def _generate_exec(self):
-        # We prepare the SPICE execution
-        return ".PRINT DC i(vdep)\n.DC vdep {0} {1} {2}\n".format(self.v_start, self.v_end, self.v_steps)
-
-    def _send_command(self):
-        print(self.spice_input)
-
-        raw_results = solve_circuit(spice_file_contents=self.spice_input, postprocess_input=self.spice_preprocessor)
-
-        return raw_results
-
-    def _parse_output(self):
-        results = parse_output(self.raw_results)
-
-        self.V, self.I = results['dep#branch']
-
-
 class SPICESolver(object):
 
     def __init__(self, solarcell: SolarCell, illumination: np.ndarray, metal_contact,
@@ -94,23 +35,22 @@ class SPICESolver(object):
         self.v_junc = None
         self.steps = int(np.floor((self.v_end - self.v_start) / self.v_steps) + 1)
 
+        self.spice_preprocessor = spice_preprocessor
+
         # TODO temporarily add gn here
         self.gn = self._find_gn()
 
-        self.spice_preprocessor = spice_preprocessor
+        self._solve_circuit()
 
+    def _solve_circuit(self):
         # TODO add temperature as an object parameter
         header = self._generate_header(temperature=20)
         nodes = self._generate_network()
         exec = self._generate_exec()
         spice_footer = ".end"
-
         self.spice_input = header + nodes + exec + spice_footer
-
         self.raw_results = self._send_command()
-
         self._parse_output()
-
         self._renormalize_output()
 
     def _find_gn(self):
@@ -211,3 +151,52 @@ class SPICESolver(object):
     def get_end_voltage_map(self):
 
         return self.v_junc[:, :, -1]
+
+
+class SinglePixelSolver(SPICESolver):
+
+    def __init__(self, solarcell: SolarCell, illumination: float, v_start,
+                 v_end, v_steps, l_r, l_c, h, spice_preprocessor=None):
+        self.solarcell = solarcell
+
+        self.l_r = l_r
+        self.l_c = l_c
+        self.finger_h = h
+        self.illumination = illumination
+
+        self.v_start = v_start
+        self.v_end = v_end
+        self.v_steps = v_steps
+
+        self.V = None
+        self.I = None
+
+        self.spice_preprocessor = spice_preprocessor
+
+        self.gn = self._find_gn()
+
+        self._solve_circuit()
+
+    def _find_gn(self):
+        sample_isc = 340
+
+        isc = self.illumination * sample_isc * self.l_c * self.l_r
+
+        return 1 / isc * 100
+
+    def _generate_network(self):
+        dummy_image = np.array([[255]])
+
+        self.solarcell.set_input_spectrum(load_astm("AM1.5g") * self.illumination)
+
+        px = PixelProcessor(self.solarcell, self.l_r, self.l_c, h=self.finger_h,gn=self.gn)
+
+        return px.node_string(id_r=0, id_c=0, sub_image=dummy_image, is_boundary_r=True, is_boundary_c=True)
+
+    def _parse_output(self):
+        results = parse_output(self.raw_results)
+
+        self.V, self.I = results['dep#branch']
+
+    def get_end_voltage_map(self):
+        raise NotImplementedError("Single pixel solver does not support voltage map")
