@@ -62,18 +62,25 @@ def iterate_sub_image(image, rw, cw):
     ri = np.arange(0, image.shape[0], rw, dtype=np.int)
     ci = np.arange(0, image.shape[1], cw, dtype=np.int)
 
-    coord_set = convert_boundary_to_coordset(ci, cw, image, ri, rw)
+    coord_set = convert_boundary_to_coordset(image.shape, ri, ci)
 
     return coord_set
 
 
-def convert_boundary_to_coordset(ci, cw, image, ri, rw):
+def convert_boundary_to_coordset(image_shape, ri, ci):
     coord_set = np.empty((ri.shape[0], ci.shape[0], 4), dtype=np.uint)
     for rii in np.arange(0, ri.shape[0], 1):
         for cii in np.arange(0, ci.shape[0], 1):
-            end_ri = min(ri[rii] + rw, image.shape[0])
 
-            end_ci = min(ci[cii] + cw, image.shape[1])
+            if rii == ri.shape[0] - 1:
+                end_ri = image_shape[0]
+            else:
+                end_ri = ri[rii + 1]
+
+            if cii == ci.shape[0] - 1:
+                end_ci = image_shape[1]
+            else:
+                end_ci = ci[cii + 1]
 
             coord_set[rii, cii, 0] = ri[rii]
             coord_set[rii, cii, 1] = end_ri
@@ -119,6 +126,8 @@ class MeshGenerator(object):
         self.r_hist = []
         self.c_hist = []
 
+        self.raw_image_shape = image_shape
+
         self.current_ri = np.arange(0, image_shape[0], rw, dtype=np.int)
         self.current_ci = np.arange(0, image_shape[1], cw, dtype=np.int)
 
@@ -127,6 +136,9 @@ class MeshGenerator(object):
 
     def ri(self):
         return self.current_ri
+
+    def to_coordset(self):
+        return convert_boundary_to_coordset(self.raw_image_shape, self.ri(), self.ci())
 
     def refine(self, y, delta_y, dim: int):
 

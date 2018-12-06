@@ -1,6 +1,7 @@
 import typing
 import numpy as np
-from .meshing import iterate_sub_image, resize_illumination
+from .meshing import iterate_sub_image, resize_illumination, \
+    MeshGenerator, convert_boundary_to_coordset
 from .pixel_processor import PixelProcessor, create_header
 from .spice_interface import solve_circuit
 from .parse_spice_output import parse_output
@@ -11,8 +12,8 @@ from pypvcell.illumination import load_astm
 
 class SPICESolver(object):
 
-    def __init__(self, solarcell: SolarCell, illumination: np.ndarray, metal_contact,
-                 rw, cw, v_start, v_end, v_steps, l_r, l_c, h, spice_preprocessor=None):
+    def __init__(self, solarcell: SolarCell, illumination: np.ndarray, metal_contact: np.ndarray,
+                 rw: int, cw: int, v_start, v_end, v_steps, l_r, l_c, h, spice_preprocessor=None):
 
         self.solarcell = solarcell
         self.metal_contact = metal_contact
@@ -36,6 +37,8 @@ class SPICESolver(object):
         self.steps = int(np.floor((self.v_end - self.v_start) / self.v_steps) + 1)
 
         self.spice_preprocessor = spice_preprocessor
+
+        self.mg = MeshGenerator(image_shape=metal_contact.shape, rw=rw, cw=cw)
 
         # TODO temporarily add gn here
         self.gn = self._find_gn()
@@ -78,19 +81,17 @@ class SPICESolver(object):
 
     def _generate_network(self):
 
+        coord_set = self.mg.to_coordset()
+
+        return self._write_nodes(coord_set)
+
+    def _write_nodes(self, coord_set):
         spice_body = ""
-
-        coord_set = iterate_sub_image(self.metal_contact, self.rw, self.cw)
-
         r_pixels, c_pixels, _ = coord_set.shape
-
         new_illumination = resize_illumination(self.illumination, self.metal_contact, coord_set, 0)
-
         assert new_illumination.shape == (r_pixels, c_pixels)
-
         self.r_node_num = r_pixels
         self.c_node_num = c_pixels
-
         for c_index in range(c_pixels):
             for r_index in range(r_pixels):
                 illumination_value = new_illumination[r_index, c_index]
@@ -104,7 +105,6 @@ class SPICESolver(object):
                 px = PixelProcessor(self.solarcell, self.l_r, self.l_c, h=self.finger_h, gn=self.gn)
 
                 spice_body += px.node_string(r_index, c_index, sub_image=sub_image)
-
         return spice_body
 
     def _generate_exec(self):
@@ -189,7 +189,7 @@ class SinglePixelSolver(SPICESolver):
 
         self.solarcell.set_input_spectrum(load_astm("AM1.5g") * self.illumination)
 
-        px = PixelProcessor(self.solarcell, self.l_r, self.l_c, h=self.finger_h,gn=self.gn)
+        px = PixelProcessor(self.solarcell, self.l_r, self.l_c, h=self.finger_h, gn=self.gn)
 
         return px.node_string(id_r=0, id_c=0, sub_image=dummy_image, is_boundary_r=True, is_boundary_c=True)
 
@@ -200,3 +200,7 @@ class SinglePixelSolver(SPICESolver):
 
     def get_end_voltage_map(self):
         raise NotImplementedError("Single pixel solver does not support voltage map")
+
+
+class IterativeSolver(SPICESolver):
+    pass
