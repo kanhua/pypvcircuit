@@ -164,7 +164,7 @@ def single_step_remeshing(x, y, delta_y, interp_func):
     index_to_be_add = []
     for xi, xval in enumerate(x[:-1]):
 
-        if np.abs(y[xi + 1] - y[xi]) > delta_y:
+        if np.abs(y[xi + 1] - y[xi]) >= delta_y:
             index_to_be_add.append(xi)
 
     if len(index_to_be_add) == 0:

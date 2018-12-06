@@ -1,4 +1,5 @@
 import typing
+import math
 import numpy as np
 from .meshing import iterate_sub_image, resize_illumination, \
     MeshGenerator, convert_boundary_to_coordset
@@ -202,5 +203,26 @@ class SinglePixelSolver(SPICESolver):
         raise NotImplementedError("Single pixel solver does not support voltage map")
 
 
-class IterativeSolver(SPICESolver):
-    pass
+class AdaptiveMeshSolver(SPICESolver):
+    """
+    This class is still in experimental phase.
+    This solver inherits everything from SPICESolver,
+    except that it has a resolve() method to remesh and then solve the circuit again.
+    In other words, the iterative solving process is not yet implemented.
+    The user has to manually write a loop and perform resolve() to get satisfactory results.
+
+
+    """
+
+    def _remesh(self, voltage_threshold=0.0):
+        voltage_map = self.v_junc[:, :, -1]
+
+        middle_r = math.ceil(voltage_map.shape[0] / 2)
+
+        rep_voltage = voltage_map[middle_r, :]
+
+        self.mg.refine(y=rep_voltage, delta_y=voltage_threshold, dim=1)
+
+    def resolve(self, voltage_threshold):
+        self._remesh(voltage_threshold=voltage_threshold)
+        self._solve_circuit()

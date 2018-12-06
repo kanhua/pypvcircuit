@@ -1,7 +1,11 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+
+from skimage.io import imread, imsave
 from spice.meshing import get_merged_r_image
+
+from pypvcell.solarcell import SQCell, MJCell
 
 
 def draw_merged_contact_images(output_data_path, test_pws, file_prefix: str, contact_mask: np.ndarray):
@@ -65,3 +69,41 @@ def gen_profile(nx, ny, bound_ratio, conc=1):
     for i in range(xp.shape[0]):
         zmtx[xp[i], yp[i]] += 1
     return zmtx
+
+
+def load_common_setting(test_instance):
+    file_path = os.path.abspath(os.path.dirname(__file__))
+
+    test_instance.output_data_path = os.path.join(file_path, 'test_output_data')
+
+    test_instance.T = 298
+
+    # TODO simplify the illumination mask to np.ones
+    # self.default_illuminationMask = imread(os.path.join(file_path, 'masks_illumination.png'))
+
+    test_instance.default_contactsMask = imread(os.path.join(file_path, 'masks_sq_no_shades.png'))
+
+    test_instance.default_illuminationMask = np.ones_like(test_instance.default_contactsMask) * 100
+
+    # Size of the pixels (m)
+    test_instance.lr = 10e-5
+    test_instance.lc = 10e-5
+
+    # Height of the metal fingers (m)
+    test_instance.h = 2.2e-6
+
+    # Contact resistance (Ohm m2)
+    test_instance.Rcontact = 3e-10
+
+    # Resistivity metal fingers (Ohm m)
+    test_instance.Rline = 2e-8
+
+    # Bias (V)
+    test_instance.vini = 0
+    test_instance.vfin = 3.0
+    test_instance.step = 0.05
+
+    test_instance.gaas_1j = SQCell(1.42, 300, 1)
+    test_instance.ingap_1j = SQCell(1.87, 300, 1)
+
+    return test_instance
