@@ -106,3 +106,11 @@ def draw_illumination_3d(illumination: np.ndarray, wavelength: np.ndarray,
         ax[idx].set_title("{:.1f} nm".format(wavelength[plot_index[idx]]))
         ax[idx].imshow(illumination[:, :, plot_index[idx]])
     return fig, ax
+
+
+def contact_ratio(mask_image, threshold):
+    n = mask_image.size
+
+    m = np.sum(np.where(mask_image > threshold, 1, 0))
+
+    return float(m) / float(n)

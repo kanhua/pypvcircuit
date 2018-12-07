@@ -90,7 +90,7 @@ class SPICESolver(object):
     def _write_nodes(self, coord_set):
         spice_body = ""
         r_pixels, c_pixels, _ = coord_set.shape
-        new_illumination = resize_illumination(self.illumination, self.metal_contact, coord_set, 0)
+        new_illumination = resize_illumination(self.illumination, self.metal_contact, coord_set)
         assert new_illumination.shape == (r_pixels, c_pixels)
         self.r_node_num = r_pixels
         self.c_node_num = c_pixels

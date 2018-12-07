@@ -91,7 +91,9 @@ def convert_boundary_to_coordset(image_shape, ri, ci):
 
 def resize_illumination(illumination, contact_mask, coord_set: np.array, threshold=0):
     assert illumination.shape == contact_mask.shape
-    light_mask = (contact_mask > threshold)
+    # TODO fix this line. it is reversed
+
+    light_mask = np.logical_not(contact_mask > threshold)
 
     filtered_illumination = illumination * light_mask
 

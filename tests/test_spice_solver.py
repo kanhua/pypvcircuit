@@ -88,7 +88,7 @@ class SpiceSolverTest(unittest.TestCase):
         solver_isc = isc(sps.V, sps.I)
 
         # calculate the isc by detailed balance model
-        is_metal = np.where(metal_mask > 0, 1, 0)
+        is_metal = np.where(metal_mask > 0, 0, 1)
 
         # This line is critical: we have to reset the input spectrum of the test 1J gaas cell
         self.gaas_1j.set_input_spectrum(load_astm("AM1.5g"))
@@ -141,6 +141,14 @@ class SpiceSolverTest(unittest.TestCase):
         step = 0.02
 
         metal_mask = get_quater_image(self.default_contactsMask)
+        plt.figure()
+
+        plt.imshow(metal_mask)
+        plt.show()
+
+        from .helper import contact_ratio
+
+        print(contact_ratio(metal_mask, threshold=0))
 
         illumination_mask_3d, wl = make_3d_illumination(*metal_mask.shape)
 
@@ -182,6 +190,13 @@ class SpiceSolverTest(unittest.TestCase):
         plt.savefig(os.path.join(self.output_data_path, "chromatic_abberated_iv.png"), dpi=300)
 
         plt.show()
+
+        is_metal = np.where(metal_mask > 0, 1, 0)
+
+        self.gaas_1j.set_input_spectrum(load_astm("AM1.5g"))
+        estimated_isc = self.gaas_1j.jsc * self.lc * self.lr * np.sum(illumination_mask_2d * is_metal)
+        print(estimated_isc / device_area)
+        print(self.gaas_1j.jsc)
 
     def test_larger_1j_circuit(self):
         """
