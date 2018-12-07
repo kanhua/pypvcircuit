@@ -2,10 +2,10 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from skimage.io import imread, imsave
+from skimage.io import imread
 from spice.meshing import get_merged_r_image
 
-from pypvcell.solarcell import SQCell, MJCell
+from pypvcell.solarcell import SQCell
 
 
 def draw_merged_contact_images(output_data_path, test_pws, file_prefix: str, contact_mask: np.ndarray):
@@ -59,18 +59,6 @@ def get_quater_image(image: np.ndarray):
     return image[center_x:, center_y:]
 
 
-def gen_profile(nx, ny, bound_ratio, conc=1):
-    total_power_pixel = nx * ny * conc
-    left_bound_x = np.floor(nx * bound_ratio).astype(np.int)
-    left_bound_y = np.floor(ny * bound_ratio).astype(np.int)
-    xp = np.random.randint(0, left_bound_x, size=total_power_pixel)
-    yp = np.random.randint(0, left_bound_y, size=total_power_pixel)
-    zmtx = np.zeros((nx, ny))
-    for i in range(xp.shape[0]):
-        zmtx[xp[i], yp[i]] += 1
-    return zmtx
-
-
 def load_common_setting(test_instance):
     file_path = os.path.abspath(os.path.dirname(__file__))
 
@@ -107,3 +95,14 @@ def load_common_setting(test_instance):
     test_instance.ingap_1j = SQCell(1.87, 300, 1)
 
     return test_instance
+
+
+def draw_illumination_3d(illumination: np.ndarray, wavelength: np.ndarray,
+                         plot_index: np.ndarray):
+    import matplotlib.pyplot as plt
+    fig, ax = plt.subplots(nrows=1, ncols=len(plot_index))
+
+    for idx in range(len(plot_index)):
+        ax[idx].set_title("{:.1f} nm".format(wavelength[plot_index[idx]]))
+        ax[idx].imshow(illumination[:, :, plot_index[idx]])
+    return fig, ax

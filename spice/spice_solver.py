@@ -2,13 +2,14 @@ import typing
 import math
 import numpy as np
 from .meshing import iterate_sub_image, resize_illumination, \
-    MeshGenerator, convert_boundary_to_coordset
+    MeshGenerator, convert_boundary_to_coordset, resize_illumination_3d
 from .pixel_processor import PixelProcessor, create_header
 from .spice_interface import solve_circuit
 from .parse_spice_output import parse_output
 
 from pypvcell.solarcell import SQCell, SolarCell
 from pypvcell.illumination import load_astm
+from pypvcell.spectrum import Spectrum
 
 
 class SPICESolver(object):
@@ -152,6 +153,62 @@ class SPICESolver(object):
     def get_end_voltage_map(self):
 
         return self.v_junc[:, :, -1]
+
+
+class SPICESolver3D(SPICESolver):
+    """
+
+    #TODO for now we assume the wavelenghts of the reference spectrum is identical to load_astm("AM1.5g)
+
+    """
+
+    def _find_gn(self):
+        """
+        find an appropriate value of gn
+
+        :return:
+        """
+
+        coord_set = iterate_sub_image(self.metal_contact, self.rw, self.cw)
+
+        r_pixels, c_pixels, _ = coord_set.shape
+
+        nz = self.illumination.shape[2]
+
+        new_illumination = resize_illumination(self.illumination[:, :, int(nz / 2)], self.metal_contact, coord_set, 0)
+
+        sample_isc = 340
+
+        isc = np.max(new_illumination) * sample_isc * self.l_r * self.l_c
+
+        return 1 / isc * 100
+
+    def _write_nodes(self, coord_set):
+        spice_body = ""
+        r_pixels, c_pixels, _ = coord_set.shape
+        new_illumination = resize_illumination_3d(self.illumination, self.metal_contact, coord_set, 0)
+        assert new_illumination.shape == (r_pixels, c_pixels, self.illumination.shape[2])
+        self.r_node_num = r_pixels
+        self.c_node_num = c_pixels
+        for c_index in range(c_pixels):
+            for r_index in range(r_pixels):
+                illumination_value = new_illumination[r_index, c_index, :]
+
+                sub_image = self.metal_contact[coord_set[r_index, c_index, 0]:coord_set[r_index, c_index, 1],
+                            coord_set[r_index, c_index, 2]:coord_set[r_index, c_index, 3]]
+
+                # set concentration
+                data = self.spectrum.get_spectrum(to_x_unit='nm')
+                x_data = data[0, :]
+
+                sp = Spectrum(x_data, illumination_value, x_unit='nm')
+
+                self.solarcell.set_input_spectrum(self.spectrum * sp)
+
+                px = PixelProcessor(self.solarcell, self.l_r, self.l_c, h=self.finger_h, gn=self.gn)
+
+                spice_body += px.node_string(r_index, c_index, sub_image=sub_image)
+        return spice_body
 
 
 class SinglePixelSolver(SPICESolver):

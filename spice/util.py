@@ -3,6 +3,8 @@ import numpy as np
 import typing
 import warnings
 
+from pypvcell.illumination import load_astm
+
 
 def default_mask(image_shape: typing.Tuple[int, int], finger_n: int):
     """
@@ -38,8 +40,8 @@ def add_grid(image: np.ndarray, finger_n, finger_width, margin_c) -> np.ndarray:
 
     finger_width_p = int(finger_width * lc)
 
-    if finger_width_p<1:
-        warnings.warn("The width of the finger is zero",RuntimeWarning)
+    if finger_width_p < 1:
+        warnings.warn("The width of the finger is zero", RuntimeWarning)
 
     pitch = lc // finger_n
 
@@ -80,3 +82,49 @@ def add_busbar(image: np.ndarray, bus_width, margin_r, margin_c):
     image[lr - margin_r_p - bus_width_p:lr - margin_r_p, margin_c_p:lc - margin_c_p] = 255
 
     return image
+
+
+def gen_profile(nx, ny, bound_ratio, conc=1):
+    total_power_pixel = nx * ny * conc
+    left_bound_x = np.floor(nx * bound_ratio).astype(np.int)
+    left_bound_y = np.floor(ny * bound_ratio).astype(np.int)
+    xp = np.random.randint(0, left_bound_x, size=total_power_pixel)
+    yp = np.random.randint(0, left_bound_y, size=total_power_pixel)
+    zmtx = np.zeros((nx, ny))
+    for i in range(xp.shape[0]):
+        zmtx[xp[i], yp[i]] += 1
+    return zmtx
+
+
+class LinearAbberation(object):
+
+    def __init__(self, x0, x1, y0, y1):
+        x0 = 1 / x0
+        x1 = 1 / x1
+
+        self.m = (y0 - y1) / (x0 - x1)
+        self.b = -self.m * x0 + y0
+
+    def get_abb(self, wavelength):
+        x = 1 / wavelength
+
+        return x * self.m + self.b
+
+
+def make_3d_illumination(rows: int, cols: int) -> typing.Tuple[np.ndarray, np.ndarray]:
+    """
+    Make a three dimensional illumination I(x,y,z)
+
+    :param rows: number of rows
+    :param cols: number of columns
+    :return: illumination matrix, wavelengths in nm
+    """
+    default_illumination = load_astm("AM1.5g")
+    spec = default_illumination.get_spectrum(to_x_unit='nm')
+    wavelength = spec[0, :]
+    lb = LinearAbberation(np.max(wavelength), np.min(wavelength), 0.6, 0.9)
+    bound = lb.get_abb(wavelength)
+    ill_mtx = np.empty((rows, cols, wavelength.shape[0]))
+    for zi in range(ill_mtx.shape[2]):
+        ill_mtx[:, :, zi] = gen_profile(rows, cols, bound_ratio=bound[zi])
+    return ill_mtx, spec[0, :]

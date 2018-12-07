@@ -12,13 +12,14 @@ import typing
 from skimage.io import imread, imsave
 
 from pypvcell.solarcell import SQCell, MJCell
-from spice.spice_solver import SPICESolver
 from pypvcell.illumination import load_astm
-from pypvcell.fom import isc,ff
+from pypvcell.fom import isc, ff
 
 from .helper import draw_contact_and_voltage_map, draw_merged_contact_images, get_quater_image
 
 from spice.parse_spice_input import NodeReducer
+from spice.spice_solver import SPICESolver, SPICESolver3D
+from spice.util import make_3d_illumination
 
 
 class SpiceSolverTest(unittest.TestCase):
@@ -36,7 +37,7 @@ class SpiceSolverTest(unittest.TestCase):
 
         self.default_contactsMask = imread(os.path.join(file_path, 'masks_sq_no_shades.png'))
 
-        self.default_illuminationMask = np.ones_like(self.default_contactsMask)*100
+        self.default_illuminationMask = np.ones_like(self.default_contactsMask) * 100
 
         # Size of the pixels (m)
         self.lr = 10e-5
@@ -64,8 +65,7 @@ class SpiceSolverTest(unittest.TestCase):
         self.test_jsc_consistency(pw=5)
         self.test_jsc_consistency(pw=10)
 
-
-    def test_jsc_consistency(self,pw=5):
+    def test_jsc_consistency(self, pw=5):
         """
         Test if jsc calculated by the SPICE solver is equal to the analytical result.
 
@@ -98,6 +98,90 @@ class SpiceSolverTest(unittest.TestCase):
         print("solver isc:{}".format(solver_isc))
         print("diff: {}".format(estimated_isc - solver_isc))
         self.assertTrue(np.isclose(float(solver_isc), estimated_isc))
+
+    def test_3d_illumination_naive(self):
+
+        """
+        This test checks if SPICESolver3D and SPICESolver gives the same result if the illumination matrix is identity
+
+        :return:
+        """
+
+        pw = 5
+
+        metal_mask = get_quater_image(self.default_contactsMask)
+
+        illumination_mask_3d, _ = make_3d_illumination(5, 5)
+
+        illumination_mask_3d = np.ones(metal_mask.shape + (illumination_mask_3d.shape[2],))
+
+        illumination_mask_2d = np.ones_like(metal_mask)
+
+        nd = NodeReducer()
+
+        self.gaas_1j.set_input_spectrum(load_astm("AM1.5g"))
+
+        sps = SPICESolver3D(solarcell=self.gaas_1j, illumination=illumination_mask_3d,
+                            metal_contact=metal_mask, rw=pw, cw=pw, v_start=self.vini, v_end=self.vfin,
+                            v_steps=self.step,
+                            l_r=self.lr, l_c=self.lc, h=self.h, spice_preprocessor=nd)
+
+        sps_2d = SPICESolver(solarcell=self.gaas_1j, illumination=illumination_mask_2d,
+                             metal_contact=metal_mask, rw=pw, cw=pw, v_start=self.vini, v_end=self.vfin,
+                             v_steps=self.step,
+                             l_r=self.lr, l_c=self.lc, h=self.h, spice_preprocessor=nd)
+
+        self.assertTrue(np.allclose(sps.I, sps_2d.I))
+
+    def test_3d_illumination(self):
+
+        pw = 5
+
+        vfin = 1.1
+        step = 0.02
+
+        metal_mask = get_quater_image(self.default_contactsMask)
+
+        illumination_mask_3d, wl = make_3d_illumination(*metal_mask.shape)
+
+        from .helper import draw_illumination_3d
+
+        fig, ax = draw_illumination_3d(illumination_mask_3d, wl, [0, -1])
+
+        fig.savefig(os.path.join(self.output_data_path, 'abberated_profile.png'), dpi=300)
+
+        fig.show()
+
+        illumination_mask_2d = np.ones_like(metal_mask)
+
+        nd = NodeReducer()
+
+        self.gaas_1j.set_input_spectrum(load_astm("AM1.5g"))
+
+        sps = SPICESolver3D(solarcell=self.gaas_1j, illumination=illumination_mask_3d,
+                            metal_contact=metal_mask, rw=pw, cw=pw, v_start=self.vini, v_end=vfin,
+                            v_steps=step,
+                            l_r=self.lr, l_c=self.lc, h=self.h, spice_preprocessor=nd)
+
+        sps_2d = SPICESolver(solarcell=self.gaas_1j, illumination=illumination_mask_2d,
+                             metal_contact=metal_mask, rw=pw, cw=pw, v_start=self.vini, v_end=vfin,
+                             v_steps=step,
+                             l_r=self.lr, l_c=self.lc, h=self.h, spice_preprocessor=nd)
+
+        device_area = (metal_mask.size * self.lc * self.lr)
+
+        plt.figure()
+        plt.plot(sps.V, -sps.I / device_area, label="uniform")
+        plt.plot(sps_2d.V, -sps_2d.I / device_area, label="with chromatic abberation")
+        plt.xlabel("voltage (V)")
+        plt.ylabel("current density (A/m^2)")
+        plt.legend()
+
+        plt.ylim(ymax=0, ymin=np.min(-sps_2d.I / device_area) * 1.1)
+
+        plt.savefig(os.path.join(self.output_data_path, "chromatic_abberated_iv.png"), dpi=300)
+
+        plt.show()
 
     def test_larger_1j_circuit(self):
         """
@@ -176,11 +260,10 @@ class SpiceSolverTest(unittest.TestCase):
                 result_vi = np.vstack((result_vi, sps.V, sps.I))
 
             plt.plot(sps.V, sps.I, label="pw: {}".format(pw))
-            fill_factor=ff(sps.V,-sps.I)
+            fill_factor = ff(sps.V, -sps.I)
 
             print("Jsc: {:2f} A/m^2".format(self.gaas_1j.jsc))
-            print("fill factor of of pw {}: {}".format(pw,fill_factor))
-
+            print("fill factor of of pw {}: {}".format(pw, fill_factor))
 
         draw_contact_and_voltage_map(self.output_data_path, test_pixel_width, file_prefix, contacts_mask)
 

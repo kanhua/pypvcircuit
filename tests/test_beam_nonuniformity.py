@@ -17,10 +17,10 @@ from spice.spice_solver import SPICESolver
 from pypvcell.illumination import load_astm
 from pypvcell.fom import isc, ff
 
-from .helper import draw_contact_and_voltage_map, draw_merged_contact_images, get_quater_image, gen_profile
+from .helper import draw_contact_and_voltage_map, draw_merged_contact_images, get_quater_image
 
 from spice.parse_spice_input import NodeReducer
-from spice.util import default_mask
+from spice.util import default_mask, gen_profile
 
 
 class BeamUniformityTest(unittest.TestCase):

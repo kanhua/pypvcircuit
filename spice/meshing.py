@@ -109,6 +109,22 @@ def resize_illumination(illumination, contact_mask, coord_set: np.array, thresho
     return resized_illumination
 
 
+def resize_illumination_3d(illumination: np.ndarray, contact_mask,
+                           coord_set: np.array, threshold=0):
+    assert illumination.ndim == 3
+    assert illumination[:, :, 0].shape == contact_mask.shape
+
+    # stupid method for resizing. Need to figure out a faster way to do this
+    r_pixels, c_pixels, _ = coord_set.shape
+
+    resized_illumination = np.empty((r_pixels, c_pixels, illumination.shape[2]))
+
+    for zi in range(illumination.shape[2]):
+        resized_illumination[:, :, zi] = resize_illumination(illumination[:, :, zi], contact_mask, coord_set, threshold)
+
+    return resized_illumination
+
+
 class MeshGenerator(object):
     """
     A class that handles the meshing.
