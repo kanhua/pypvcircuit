@@ -50,13 +50,17 @@ def draw_contact_and_voltage_map(output_data_path, test_pws, file_prefix: str, c
 
 
 def get_quater_image(image: np.ndarray):
-    nx, ny = image.shape
+    """
+    Get the bottom-right quarter of a 2D image
 
-    # For symmetry arguments (not completely true for the illumination), we can mode just 1/4 of the device and then
-    # multiply the current by 4
-    center_x = int(nx / 2)
-    center_y = int(ny / 2)
-    return image[center_x:, center_y:]
+    :param image: the 2D input image
+    :return:
+    """
+    nr, nc = image.shape
+
+    center_r = int(nr / 2)
+    center_c = int(nc / 2)
+    return image[center_r:, center_c:]
 
 
 def load_common_setting(test_instance):

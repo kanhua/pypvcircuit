@@ -60,17 +60,19 @@ class BeamUniformityTest(unittest.TestCase):
         self.gaas_1j = SQCell(1.42, 300, 1)
         self.ingap_1j = SQCell(1.87, 300, 1)
 
-
     def test_bunch_nonuniformity(self):
+        self.test_nonuniformity(0.3, concentration=1)
+        self.test_nonuniformity(0.5, concentration=1)
+        self.test_nonuniformity(1.0, concentration=1)
 
-        self.test_nonuniformity(0.1)
-        self.test_nonuniformity(0.8)
-        self.test_nonuniformity(1.0)
+    def test_high_conc_nonuniformity(self):
+        self.test_nonuniformity(0.3, concentration=100)
 
-    def test_nonuniformity(self, bound_ratio):
+    def test_nonuniformity(self, bound_ratio, concentration):
         """
         Test the solar cell results with different number of fingers
 
+        :param concentration:
         :param grid_n: number of fingers
         :param pw: merged pixel width
         :return:
@@ -85,7 +87,7 @@ class BeamUniformityTest(unittest.TestCase):
 
         # concentration should be ramped up to see the fill factor difference. Typically > 100
         illumination_mask = gen_profile(metal_mask.shape[0],
-                                        metal_mask.shape[1], bound_ratio=bound_ratio,conc=100)
+                                        metal_mask.shape[1], bound_ratio=bound_ratio, conc=concentration)
 
         nd = NodeReducer()
 
@@ -96,14 +98,14 @@ class BeamUniformityTest(unittest.TestCase):
                           v_steps=self.step,
                           l_r=self.Lx, l_c=self.Ly, h=self.h, spice_preprocessor=nd)
 
-        solver_isc = isc(sps.V, sps.I)
+        solver_isc = -isc(sps.V, -sps.I)
 
         # calculate the isc by detailed balance model
-        is_metal = np.where(metal_mask > 0, 1, 0)
+        not_metal = np.where(metal_mask > 0, 0, 1)
 
         # This line is critical: we have to reset the input spectrum of the test 1J gaas cell
         self.gaas_1j.set_input_spectrum(load_astm("AM1.5g"))
-        estimated_isc = self.gaas_1j.jsc * self.Ly * self.Lx * np.sum(illumination_mask * is_metal)
+        estimated_isc = self.gaas_1j.jsc * self.Ly * self.Lx * np.sum(illumination_mask * not_metal)
 
         print("estimated isc:{}".format(estimated_isc))
         print("solver isc:{}".format(solver_isc))

@@ -73,7 +73,7 @@ class SPICESolver(object):
 
         sample_isc = 340
 
-        isc = np.max(new_illumination) * sample_isc * self.l_r * self.l_c
+        isc = np.mean(new_illumination) * sample_isc * self.l_r * self.l_c
 
         return 1 / isc * 100
 

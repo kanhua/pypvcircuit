@@ -88,11 +88,11 @@ class SpiceSolverTest(unittest.TestCase):
         solver_isc = isc(sps.V, sps.I)
 
         # calculate the isc by detailed balance model
-        is_metal = np.where(metal_mask > 0, 0, 1)
+        not_metal = np.where(metal_mask > 0, 0, 1)
 
         # This line is critical: we have to reset the input spectrum of the test 1J gaas cell
         self.gaas_1j.set_input_spectrum(load_astm("AM1.5g"))
-        estimated_isc = self.gaas_1j.jsc * self.lc * self.lr * np.sum(illumination_mask * is_metal)
+        estimated_isc = self.gaas_1j.jsc * self.lc * self.lr * np.sum(illumination_mask * not_metal)
 
         print("estimated isc:{}".format(estimated_isc))
         print("solver isc:{}".format(solver_isc))
