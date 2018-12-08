@@ -187,7 +187,10 @@ def create_node(type, idr, idc, l_r, l_c, isc, rs_top, rs_bot,
         rshuntJ = ""
 
         # And add the source
-        source = 'i{0} b_{0} t_{0} {1}\n'.format(loc, isc[j])
+        if isc[j] > 0:
+            source = 'i{0} b_{0} t_{0} {1}\n'.format(loc, isc[j])
+        else:
+            source = ''
 
         rbotLCLX = ""
         rtopLCLX = ""
