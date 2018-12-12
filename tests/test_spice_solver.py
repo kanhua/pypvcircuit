@@ -179,23 +179,26 @@ class SpiceSolverTest(unittest.TestCase):
         device_area = (metal_mask.size * self.lc * self.lr)
 
         plt.figure()
-        plt.plot(sps.V, -sps.I / device_area, label="uniform")
-        plt.plot(sps_2d.V, -sps_2d.I / device_area, label="with chromatic abberation")
+        plt.plot(sps.V, -sps.I / device_area, label="with abberration")
+        plt.plot(sps_2d.V, -sps_2d.I / device_area, label="uniform")
         plt.xlabel("voltage (V)")
         plt.ylabel("current density (A/m^2)")
         plt.legend()
 
-        plt.ylim(ymax=0, ymin=np.min(-sps_2d.I / device_area) * 1.1)
+        plt.ylim(ymax=0, ymin=np.min(-sps_2d.I / device_area) * 2)
 
         plt.savefig(os.path.join(self.output_data_path, "chromatic_abberated_iv.png"), dpi=300)
 
         plt.show()
 
-        is_metal = np.where(metal_mask > 0, 1, 0)
+        not_metal = np.logical_not(np.where(metal_mask > 0, 1, 0))
 
         self.gaas_1j.set_input_spectrum(load_astm("AM1.5g"))
-        estimated_isc = self.gaas_1j.jsc * self.lc * self.lr * np.sum(illumination_mask_2d * is_metal)
-        print(estimated_isc / device_area)
+        estimated_isc = self.gaas_1j.jsc * self.lc * self.lr * np.sum(illumination_mask_2d * not_metal)
+        # device_photo_active_area=self.lc*self.lr*np.sum()
+        print(estimated_isc)
+        print("2D illumination solver isc:{}".format(sps_2d.I[0]))
+        print("3D illumination solver isc:{}".format(sps.I[0]))
         print(self.gaas_1j.jsc)
 
     def test_larger_1j_circuit(self):
