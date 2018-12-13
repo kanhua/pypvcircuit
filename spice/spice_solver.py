@@ -148,7 +148,7 @@ class SPICESolver(object):
     def _renormalize_output(self):
 
         # self.v_junc=self.v_junc*gn
-        self.I = self.I / self.gn
+        self.I = -self.I / self.gn
 
     def get_end_voltage_map(self):
 

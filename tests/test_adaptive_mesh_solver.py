@@ -102,12 +102,14 @@ class AdaptiveMeshSolverTestCase(unittest.TestCase):
         iv_ax.plot(adp_solver.V, adp_solver.I)
 
         fig, ax = plt.subplots(nrows=2, ncols=3)
+        ax[0, 0].set_title("1st iteration")
         ax[0, 0].pcolor(metal_mask)
         ax[0, 0].vlines(adp_solver.mg.ci(), ymin=0, ymax=metal_mask.shape[0] - 1, colors='red', linewidths=1)
 
         ax[1, 0].pcolor(adp_solver.mg.ci(), adp_solver.mg.ri(), adp_solver.v_junc[:, :, -1])
 
         adp_solver.resolve(voltage_threshold=0.01)
+        ax[0, 1].set_title("2nd iteration")
         ax[0, 1].pcolor(metal_mask)
         ax[0, 1].vlines(adp_solver.mg.ci(), ymin=0, ymax=metal_mask.shape[0] - 1, colors='red', linewidths=1)
 
@@ -116,12 +118,19 @@ class AdaptiveMeshSolverTestCase(unittest.TestCase):
         iv_ax.plot(adp_solver.V, adp_solver.I)
 
         adp_solver.resolve(voltage_threshold=0.01)
+        ax[0, 2].set_title("3rd iteration")
         ax[0, 2].pcolor(metal_mask)
         ax[0, 2].vlines(adp_solver.mg.ci(), ymin=0, ymax=metal_mask.shape[0] - 1, colors='red', linewidths=1)
 
         ax[1, 2].pcolor(adp_solver.mg.ci(), adp_solver.mg.ri(), adp_solver.v_junc[:, :, -1])
 
         iv_ax.plot(adp_solver.V, adp_solver.I)
+        iv_ax.set_ylim(ymax=0)
+        iv_ax.set_ylim(ymin=adp_solver.I[0] * 1.5)
+
+        iv_ax.set_xlabel("voltage (V)")
+        iv_ax.set_ylabel("current (A)")
+        iv_ax.grid()
 
         fig.savefig(os.path.join(self.output_data_path, "mesh_on_less_grids.png"), dpi=300)
         iv_fig.savefig(os.path.join(self.output_data_path, "mesh_on_less_grids_iv.png"), dpi=300)

@@ -15,11 +15,12 @@ from pypvcell.solarcell import SQCell, MJCell
 from pypvcell.illumination import load_astm
 from pypvcell.fom import isc, ff
 
-from .helper import draw_contact_and_voltage_map, draw_merged_contact_images, get_quater_image
+from .helper import draw_contact_and_voltage_map, draw_merged_contact_images, \
+    get_quater_image, contact_ratio, draw_illumination_3d
 
 from spice.parse_spice_input import NodeReducer
 from spice.spice_solver import SPICESolver, SPICESolver3D
-from spice.util import make_3d_illumination
+from spice.util import make_3d_illumination, gen_profile
 
 
 class SpiceSolverTest(unittest.TestCase):
@@ -134,6 +135,11 @@ class SpiceSolverTest(unittest.TestCase):
         self.assertTrue(np.allclose(sps.I, sps_2d.I))
 
     def test_3d_illumination(self):
+        """
+        Test if 3D illumination can run successfully on 1J cell
+
+        :return:
+        """
 
         pw = 5
 
@@ -146,13 +152,11 @@ class SpiceSolverTest(unittest.TestCase):
         plt.imshow(metal_mask)
         plt.show()
 
-        from .helper import contact_ratio
 
         print(contact_ratio(metal_mask, threshold=0))
 
         illumination_mask_3d, wl = make_3d_illumination(*metal_mask.shape)
 
-        from .helper import draw_illumination_3d
 
         fig, ax = draw_illumination_3d(illumination_mask_3d, wl, [0, -1])
 
@@ -160,7 +164,7 @@ class SpiceSolverTest(unittest.TestCase):
 
         fig.show()
 
-        illumination_mask_2d = np.ones_like(metal_mask)
+        illumination_mask_2d = gen_profile(metal_mask.shape[0], metal_mask.shape[1], bound_ratio=0.6)
 
         nd = NodeReducer()
 
@@ -179,13 +183,13 @@ class SpiceSolverTest(unittest.TestCase):
         device_area = (metal_mask.size * self.lc * self.lr)
 
         plt.figure()
-        plt.plot(sps.V, -sps.I / device_area, label="with abberration")
-        plt.plot(sps_2d.V, -sps_2d.I / device_area, label="uniform")
+        plt.plot(sps.V, sps.I / device_area, label="with abberration")
+        plt.plot(sps_2d.V, sps_2d.I / device_area, label="uniform")
         plt.xlabel("voltage (V)")
         plt.ylabel("current density (A/m^2)")
         plt.legend()
 
-        plt.ylim(ymax=0, ymin=np.min(-sps_2d.I / device_area) * 2)
+        plt.ylim(ymax=0, ymin=np.min(sps_2d.I / device_area) * 2)
 
         plt.savefig(os.path.join(self.output_data_path, "chromatic_abberated_iv.png"), dpi=300)
 
@@ -249,7 +253,7 @@ class SpiceSolverTest(unittest.TestCase):
         imsave(os.path.join(self.output_data_path, "{}_ill1.png".format(file_prefix)), illumination_mask)
         imsave(os.path.join(self.output_data_path, "{}_contact1.png".format(file_prefix)), contacts_mask)
 
-        test_pixel_width = [2, 5, 10]
+        test_pixel_width = [1, 2, 5, 10]
 
         draw_merged_contact_images(self.output_data_path, test_pixel_width, file_prefix, contacts_mask)
 
@@ -278,9 +282,10 @@ class SpiceSolverTest(unittest.TestCase):
                 result_vi = np.vstack((result_vi, sps.V, sps.I))
 
             plt.plot(sps.V, sps.I, label="pw: {}".format(pw))
-            fill_factor = ff(sps.V, -sps.I)
+            fill_factor = ff(sps.V, sps.I)
+            calculated_isc = isc(sps.V, sps.I)
 
-            print("Jsc: {:2f} A/m^2".format(self.gaas_1j.jsc))
+            print("Jsc: {:2f} A/m^2".format(calculated_isc))
             print("fill factor of of pw {}: {}".format(pw, fill_factor))
 
         draw_contact_and_voltage_map(self.output_data_path, test_pixel_width, file_prefix, contacts_mask)
