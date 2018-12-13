@@ -7,6 +7,7 @@ from spice.meshing import get_merged_r_image
 
 from pypvcell.solarcell import SQCell
 
+import matplotlib.pyplot as plt
 
 def draw_merged_contact_images(output_data_path, test_pws, file_prefix: str, contact_mask: np.ndarray):
     """
@@ -103,8 +104,8 @@ def load_common_setting(test_instance):
 
 def draw_illumination_3d(illumination: np.ndarray, wavelength: np.ndarray,
                          plot_index: np.ndarray):
-    import matplotlib.pyplot as plt
-    fig, ax = plt.subplots(nrows=1, ncols=len(plot_index))
+    base_width = 3.0
+    fig, ax = plt.subplots(nrows=1, ncols=len(plot_index), figsize=(base_width * len(plot_index), 3))
 
     for idx in range(len(plot_index)):
         ax[idx].set_title("{:.1f} nm".format(wavelength[plot_index[idx]]))

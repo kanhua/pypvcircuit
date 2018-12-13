@@ -60,6 +60,7 @@ class SpiceSolverTest(unittest.TestCase):
 
         self.gaas_1j = SQCell(1.42, 300, 1)
         self.ingap_1j = SQCell(1.87, 300, 1)
+        self.ge_1j = SQCell(0.7, 300, 1)
 
     def test_jsc(self):
 
@@ -152,11 +153,9 @@ class SpiceSolverTest(unittest.TestCase):
         plt.imshow(metal_mask)
         plt.show()
 
-
         print(contact_ratio(metal_mask, threshold=0))
 
         illumination_mask_3d, wl = make_3d_illumination(*metal_mask.shape)
-
 
         fig, ax = draw_illumination_3d(illumination_mask_3d, wl, [0, -1])
 
@@ -204,6 +203,85 @@ class SpiceSolverTest(unittest.TestCase):
         print("2D illumination solver isc:{}".format(sps_2d.I[0]))
         print("3D illumination solver isc:{}".format(sps.I[0]))
         print(self.gaas_1j.jsc)
+
+    def test_3d_illumination_3J(self):
+        """
+        Test if 3D illumination can run successfully on 3J cell
+        #TODO lots of duplicated code from 1J version
+
+        :return:
+        """
+
+        mj_cell = MJCell([self.ingap_1j, self.gaas_1j, self.ge_1j])
+
+        pw = 5
+
+        vfin = 3.0
+        step = 0.02
+
+        metal_mask = get_quater_image(self.default_contactsMask)
+        plt.figure()
+
+        plt.imshow(metal_mask)
+        plt.show()
+
+        print(contact_ratio(metal_mask, threshold=0))
+
+        illumination_mask_3d, wl = make_3d_illumination(*metal_mask.shape)
+
+        fig, ax = draw_illumination_3d(illumination_mask_3d, wl, [0, 500, 800, -1])
+
+        fig.savefig(os.path.join(self.output_data_path, 'aberrated_profile.png'), dpi=300)
+
+        fig.show()
+
+        illumination_mask_2d = gen_profile(metal_mask.shape[0], metal_mask.shape[1], bound_ratio=0.7)
+        plt.figure()
+        plt.imshow(illumination_mask_2d)
+
+        plt.title("no aberration")
+        plt.savefig(os.path.join(self.output_data_path, "no_aberration_profile.png"))
+        plt.show()
+
+        nd = NodeReducer()
+
+        mj_cell.set_input_spectrum(load_astm("AM1.5g"))
+
+        sps = SPICESolver3D(solarcell=mj_cell, illumination=illumination_mask_3d,
+                            metal_contact=metal_mask, rw=pw, cw=pw, v_start=self.vini, v_end=vfin,
+                            v_steps=step,
+                            l_r=self.lr, l_c=self.lc, h=self.h, spice_preprocessor=nd)
+
+        sps_2d = SPICESolver(solarcell=mj_cell, illumination=illumination_mask_2d,
+                             metal_contact=metal_mask, rw=pw, cw=pw, v_start=self.vini, v_end=vfin,
+                             v_steps=step,
+                             l_r=self.lr, l_c=self.lc, h=self.h, spice_preprocessor=nd)
+
+        device_area = (metal_mask.size * self.lc * self.lr)
+
+        plt.figure()
+        plt.plot(sps.V, sps.I / device_area, label="with aberration")
+        plt.plot(sps_2d.V, sps_2d.I / device_area, label="no aberration")
+        plt.xlabel("voltage (V)")
+        plt.ylabel("current density (A/m^2)")
+        plt.grid()
+        plt.legend()
+
+        plt.ylim(ymax=0, ymin=np.min(sps_2d.I / device_area) * 1.2)
+
+        plt.savefig(os.path.join(self.output_data_path, "chromatic_aberrated_iv.png"), dpi=300)
+
+        plt.show()
+
+        not_metal = np.logical_not(np.where(metal_mask > 0, 1, 0))
+
+        mj_cell.set_input_spectrum(load_astm("AM1.5g"))
+        # estimated_isc = self.gaas_1j.jsc * self.lc * self.lr * np.sum(illumination_mask_2d * not_metal)
+        # device_photo_active_area=self.lc*self.lr*np.sum()
+        # print(estimated_isc)
+        print("2D illumination solver isc:{}".format(sps_2d.I[0]))
+        print("3D illumination solver isc:{}".format(sps.I[0]))
+        # print(self.gaas_1j.jsc)
 
     def test_larger_1j_circuit(self):
         """

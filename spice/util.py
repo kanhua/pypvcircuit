@@ -122,7 +122,7 @@ def make_3d_illumination(rows: int, cols: int) -> typing.Tuple[np.ndarray, np.nd
     default_illumination = load_astm("AM1.5g")
     spec = default_illumination.get_spectrum(to_x_unit='nm')
     wavelength = spec[0, :]
-    lb = LinearAbberation(np.max(wavelength), np.min(wavelength), 0.6, 0.9)
+    lb = LinearAbberation(np.max(wavelength), np.min(wavelength), 0.9, 0.6)
     bound = lb.get_abb(wavelength)
     ill_mtx = np.empty((rows, cols, wavelength.shape[0]))
     for zi in range(ill_mtx.shape[2]):
