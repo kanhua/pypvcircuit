@@ -3,7 +3,7 @@
 This repository demonstrates how to use pypvcell and ngspice to simulate solar cell in 2D or 3D. The algorithm and the code is partly adapted from [Solcore](https://github.com/dalonsoa/solcore5), but I added a number of my own tweaks. Details are described [here](./docs/calculation_principles.md).
 
 
-![network_sim](./doc_images/network_sim.001.jpeg)
+![network_sim](./doc_images/network_simulation_3d.png)
 
 
 ## Package dependency
