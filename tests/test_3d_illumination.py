@@ -11,7 +11,7 @@ from pypvcell.spectrum import Spectrum
 import matplotlib.pyplot as plt
 from scipy.stats import multivariate_normal
 
-from spice.util import LinearAbberation, make_3d_illumination
+from pypvcircuit.util import LinearAberration, make_3d_illumination
 
 
 class IlluminationTestCase(unittest.TestCase):
@@ -59,7 +59,7 @@ class IlluminationTestCase(unittest.TestCase):
         plt.plot(np.arange(0, 120, 1), rv.pdf(pos)[60, :])
 
     def test_square_random(self):
-        lb = LinearAbberation(4000, 285, 0.6, 0.9)
+        lb = LinearAberration(4000, 285, 0.6, 0.9)
 
         x = np.linspace(285, 4000, num=100)
         y = lb.get_abb(x)

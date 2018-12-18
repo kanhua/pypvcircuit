@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from skimage.io import imread
-from spice.meshing import get_merged_r_image
+from pypvcircuit.meshing import get_merged_r_image
 
 from pypvcell.solarcell import SQCell
 

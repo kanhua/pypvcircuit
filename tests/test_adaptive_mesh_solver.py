@@ -6,10 +6,10 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-from spice.spice_solver import AdaptiveMeshSolver
+from pypvcircuit.spice_solver import AdaptiveMeshSolver
 
-from spice.parse_spice_input import NodeReducer
-from spice.util import default_mask
+from pypvcircuit.parse_spice_input import NodeReducer
+from pypvcircuit.util import default_mask
 
 from pypvcell.illumination import load_astm
 from pypvcell.fom import isc, ff

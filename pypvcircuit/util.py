@@ -1,4 +1,8 @@
-import math
+"""
+Utility functions for generating metal or illumination mask profile
+
+"""
+
 import numpy as np
 import typing
 import warnings
@@ -84,19 +88,34 @@ def add_busbar(image: np.ndarray, bus_width, margin_r, margin_c):
     return image
 
 
-def gen_profile(nx, ny, bound_ratio, conc=1):
-    total_power_pixel = nx * ny * conc
-    left_bound_x = np.floor(nx * bound_ratio).astype(np.int)
-    left_bound_y = np.floor(ny * bound_ratio).astype(np.int)
+def gen_profile(rows, cols, bound_ratio, conc=1):
+    """
+    Randomly generate a profile I(r,c), so that:
+
+    1) The shape of I(r,c) is (rows,cols)
+
+    2) sum(I(r,c))=conc*rows*cols
+
+    3) I(r,c)==0 when r>rows*bound_ratio and c>cols*bound_ratio
+
+    :param rows: number of rows of the profile matrix
+    :param cols: number of columns of the profile matrix
+    :param bound_ratio: position of the bound (in fraction)
+    :param conc: average concentration
+    :return:
+    """
+    total_power_pixel = rows * cols * conc
+    left_bound_x = np.floor(rows * bound_ratio).astype(np.int)
+    left_bound_y = np.floor(cols * bound_ratio).astype(np.int)
     xp = np.random.randint(0, left_bound_x, size=total_power_pixel)
     yp = np.random.randint(0, left_bound_y, size=total_power_pixel)
-    zmtx = np.zeros((nx, ny))
+    zmtx = np.zeros((rows, cols))
     for i in range(xp.shape[0]):
         zmtx[xp[i], yp[i]] += 1
     return zmtx
 
 
-class LinearAbberation(object):
+class LinearAberration(object):
 
     def __init__(self, x0, x1, y0, y1):
         x0 = 1 / x0
@@ -122,7 +141,7 @@ def make_3d_illumination(rows: int, cols: int) -> typing.Tuple[np.ndarray, np.nd
     default_illumination = load_astm("AM1.5g")
     spec = default_illumination.get_spectrum(to_x_unit='nm')
     wavelength = spec[0, :]
-    lb = LinearAbberation(np.max(wavelength), np.min(wavelength), 0.9, 0.6)
+    lb = LinearAberration(np.max(wavelength), np.min(wavelength), 0.9, 0.6)
     bound = lb.get_abb(wavelength)
     ill_mtx = np.empty((rows, cols, wavelength.shape[0]))
     for zi in range(ill_mtx.shape[2]):
