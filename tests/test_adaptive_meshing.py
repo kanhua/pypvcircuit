@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 from skimage.io import imread
 
-from spice.meshing import single_step_remeshing, \
+from pypvcircuit.meshing import single_step_remeshing, \
     middle_point_ceil, middle_point, MeshGenerator
 from .helper import get_quater_image
 

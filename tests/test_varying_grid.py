@@ -13,14 +13,14 @@ import typing
 from skimage.io import imread, imsave
 
 from pypvcell.solarcell import SQCell, MJCell
-from spice.spice_solver import SPICESolver
 from pypvcell.illumination import load_astm
 from pypvcell.fom import isc, ff
 
 from .helper import draw_contact_and_voltage_map, draw_merged_contact_images, get_quater_image
 
-from spice.parse_spice_input import NodeReducer
-from spice.util import default_mask
+from pypvcircuit.parse_spice_input import NodeReducer
+from pypvcircuit.util import default_mask
+from pypvcircuit.spice_solver import SPICESolver
 
 
 class SpiceSolverTest(unittest.TestCase):

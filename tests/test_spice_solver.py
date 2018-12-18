@@ -18,9 +18,9 @@ from pypvcell.fom import isc, ff
 from .helper import draw_contact_and_voltage_map, draw_merged_contact_images, \
     get_quater_image, contact_ratio, draw_illumination_3d
 
-from spice.parse_spice_input import NodeReducer
-from spice.spice_solver import SPICESolver, SPICESolver3D
-from spice.util import make_3d_illumination, gen_profile
+from pypvcircuit.parse_spice_input import NodeReducer
+from pypvcircuit.spice_solver import SPICESolver, SPICESolver3D
+from pypvcircuit.util import make_3d_illumination, gen_profile
 
 
 class SpiceSolverTest(unittest.TestCase):

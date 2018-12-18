@@ -1,5 +1,5 @@
 import unittest
-from spice.pixel_processor import create_node
+from pypvcircuit.pixel_processor import create_node
 
 
 class MyTestCase(unittest.TestCase):

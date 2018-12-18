@@ -1,6 +1,6 @@
 import unittest
-from spice.meshing import iterate_sub_image, get_merged_r_image, resize_illumination
-from spice.pixel_processor import get_pixel_r
+from pypvcircuit.meshing import iterate_sub_image, get_merged_r_image, resize_illumination
+from pypvcircuit.pixel_processor import get_pixel_r
 from skimage.io import imread, imsave
 import numpy as np
 import matplotlib.pyplot as plt

@@ -1,8 +1,8 @@
 import unittest
 from pypvcell.solarcell import SQCell
-from spice.pixel_processor import PixelProcessor
-from spice.spice_solver import SPICESolver, SinglePixelSolver
-from spice.parse_spice_input import reprocess_spice_input, NodeReducer
+from pypvcircuit.pixel_processor import PixelProcessor
+from pypvcircuit.spice_solver import SPICESolver, SinglePixelSolver
+from pypvcircuit.parse_spice_input import reprocess_spice_input, NodeReducer
 import os
 from skimage.io import imread, imsave
 import matplotlib.pyplot as plt

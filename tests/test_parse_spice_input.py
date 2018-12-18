@@ -1,5 +1,5 @@
 import unittest
-from spice.parse_spice_input import parse_spice_command
+from pypvcircuit.parse_spice_input import parse_spice_command
 
 
 class InputParsingTestCase(unittest.TestCase):
