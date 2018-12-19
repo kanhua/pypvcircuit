@@ -2,17 +2,21 @@ import typing
 import math
 import numpy as np
 from .meshing import iterate_sub_image, resize_illumination, \
-    MeshGenerator, convert_boundary_to_coordset, resize_illumination_3d
+    MeshGenerator, resize_illumination_3d
 from .pixel_processor import PixelProcessor, create_header
 from .spice_interface import solve_circuit
 from .parse_spice_output import parse_output
 
-from pypvcell.solarcell import SQCell, SolarCell
+from pypvcell.solarcell import SolarCell
 from pypvcell.illumination import load_astm
 from pypvcell.spectrum import Spectrum
 
 
 class SPICESolver(object):
+    """
+    Base class of SPICE solver. The solver is launched in the contructor (__init__()).
+
+    """
 
     def __init__(self, solarcell: SolarCell, illumination: np.ndarray, metal_contact: np.ndarray,
                  rw: int, cw: int, v_start, v_end, v_steps, l_r, l_c, h, spice_preprocessor=None):
