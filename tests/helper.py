@@ -113,7 +113,16 @@ def draw_illumination_3d(illumination: np.ndarray, wavelength: np.ndarray,
     return fig, ax
 
 
-def contact_ratio(mask_image, threshold):
+def contact_ratio(mask_image: np.ndarray, threshold):
+    """
+    Calculate the ratio of contacts on an image
+    Contact area is defined as image[image>threshold]
+
+    :param mask_image: The image of the metal contact
+    :param threshold: threshold value of the metal contact
+    :return: the ratio of contact area (in fraction)
+    """
+
     n = mask_image.size
 
     m = np.sum(np.where(mask_image > threshold, 1, 0))

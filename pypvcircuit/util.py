@@ -74,6 +74,18 @@ def add_grid(image: np.ndarray, finger_n, finger_width, margin_c) -> np.ndarray:
 
 
 def add_busbar(image: np.ndarray, bus_width, margin_r, margin_c):
+    """
+    Add horizontal bus bar onto both end of the image.
+    The pixel value of the bus bar is 255.
+    In this version, the bus bar draws on the input image, that is, the input image will be modified.
+
+    :param image: the input image
+    :param bus_width: the bus bar width in fraction of image.shape[0]
+    :param margin_r: the width between the bus bar and the edge of the cell in vertical (row) direction
+    :param margin_c: the width between the bus bar and the edge of the cell in horizontal (vertical) direction
+    :return:
+    """
+
     lr = image.shape[0]
     lc = image.shape[1]
 
@@ -118,6 +130,16 @@ def gen_profile(rows, cols, bound_ratio, conc=1):
 class LinearAberration(object):
 
     def __init__(self, x0, x1, y0, y1):
+        """
+        Define a linear chromatic aberration y(x) functor by interpolation
+        y is a response function that can be used, for example, as the bound_value in gen_profile()
+        Note that this function converts wavelength to frequency
+
+        :param x0: wavelength 0
+        :param x1: wavelength 1
+        :param y0: the responded value of x0
+        :param y1: the responded value of x1
+        """
         x0 = 1 / x0
         x1 = 1 / x1
 
@@ -125,6 +147,11 @@ class LinearAberration(object):
         self.b = -self.m * x0 + y0
 
     def get_abb(self, wavelength):
+        """
+        Get the interpolated value x
+        :param wavelength:
+        :return: y value
+        """
         x = 1 / wavelength
 
         return x * self.m + self.b

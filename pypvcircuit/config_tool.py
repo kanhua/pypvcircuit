@@ -1,6 +1,6 @@
 """
 Configure the main program.
-This file is adapted from solcore5
+This file is adapted from solcore5 (https://github.com/dalonsoa/solcore5)
 
 """
 

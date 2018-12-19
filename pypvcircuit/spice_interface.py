@@ -1,5 +1,9 @@
-""" Solves an electrical circuit using SPICE. The input must be a correctly formated SPICE file and the output will be
-the raw result from SPICE or after some processing, depending of what is requested. """
+"""
+Solves an electrical circuit using SPICE. The input must be a correctly formated SPICE file and the output will be
+the raw result from SPICE or after some processing, depending of what is requested.
+The code is adapted from solcore5 (https://github.com/dalonsoa/solcore5)
+
+"""
 
 import numpy
 import os

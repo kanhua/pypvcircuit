@@ -158,7 +158,7 @@ class SPICESolver(object):
 class SPICESolver3D(SPICESolver):
     """
 
-    #TODO for now we assume the wavelenghts of the reference spectrum is identical to load_astm("AM1.5g)
+    #TODO for now we assume the wavelengths of the reference spectrum is identical to load_astm("AM1.5g)
 
     """
 
