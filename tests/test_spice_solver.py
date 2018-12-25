@@ -23,6 +23,8 @@ from pypvcircuit.parse_spice_input import NodeReducer
 from pypvcircuit.spice_solver import SPICESolver, SPICESolver3D
 from pypvcircuit.util import make_3d_illumination, gen_profile, HighResGrid, MetalGrid
 
+import yaml
+
 
 class SpiceSolverTest(unittest.TestCase):
 
@@ -315,9 +317,19 @@ class SpiceSolverTest(unittest.TestCase):
 
         hrg = HighResGrid()
         illumination_mask = np.ones_like(hrg.metal_image)
-        self.vary_pixel_width(self.gaas_1j, file_prefix="3j_highres",
+        self.vary_pixel_width(self.gaas_1j, file_prefix="1j_highres",
                               contacts_mask_obj=hrg,
-                              test_pixel_width=[5, 10], illumination_mask=illumination_mask)
+                              test_pixel_width=[1, 2, 3, 4, 5, 10], illumination_mask=illumination_mask)
+
+    def test_highres_3j(self):
+        hrg = HighResGrid()
+        illumination_mask = np.ones_like(hrg.metal_image)
+
+        mj_cell = MJCell([self.ingap_1j, self.gaas_1j, self.ge_1j])
+
+        self.vary_pixel_width(mj_cell, file_prefix="1j_highres",
+                              contacts_mask_obj=hrg,
+                              test_pixel_width=[2, 3, 4, 5, 10], illumination_mask=illumination_mask)
 
     def vary_pixel_width(self, input_solar_cells: SQCell,
                          file_prefix: str, illumination_mask=None, contacts_mask_obj=None,
@@ -351,8 +363,11 @@ class SpiceSolverTest(unittest.TestCase):
 
         plt.figure()
 
+        elapsed_time = []
+
         for pw in test_pixel_width:
 
+            # TODO time profiler can be added into SPICESolver
             start_time = timeit.default_timer()
             nd = NodeReducer()
 
@@ -377,7 +392,12 @@ class SpiceSolverTest(unittest.TestCase):
 
             print("Jsc: {:2f} A/m^2".format(calculated_isc))
             print("fill factor of of pw {}: {}".format(pw, fill_factor))
-            print("time elapsed: {:.2f}".format(end_time - start_time))
+            print("time elapsed: {:.2f} sec.".format(end_time - start_time))
+            elapsed_time.append(end_time - start_time)
+
+        yfp = open(os.path.join(self.output_data_path, "{}_record.yaml").format(file_prefix), 'w')
+        yaml.dump({'pw': test_pixel_width, 'time_elpased': elapsed_time}, yfp)
+        yfp.close()
 
         draw_contact_and_voltage_map(self.output_data_path, test_pixel_width, file_prefix, contacts_mask)
 
