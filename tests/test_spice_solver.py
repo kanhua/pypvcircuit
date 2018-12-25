@@ -5,6 +5,7 @@ This set tests the full solar cell equivalent circuit simulation, using the dyna
 """
 
 import unittest
+import timeit
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -352,12 +353,15 @@ class SpiceSolverTest(unittest.TestCase):
 
         for pw in test_pixel_width:
 
+            start_time = timeit.default_timer()
             nd = NodeReducer()
 
             sps = SPICESolver(solarcell=input_solar_cells, illumination=illumination_mask,
                               metal_contact=contacts_mask, rw=pw, cw=pw, v_start=self.vini, v_end=self.vfin,
                               v_steps=self.step,
                               l_r=l_r, l_c=l_c, h=self.h, spice_preprocessor=nd)
+
+            end_time = timeit.default_timer()
 
             np.save(os.path.join(self.output_data_path, "{}_vmap_{}.npy").format(file_prefix, pw),
                     sps.get_end_voltage_map())
@@ -373,6 +377,7 @@ class SpiceSolverTest(unittest.TestCase):
 
             print("Jsc: {:2f} A/m^2".format(calculated_isc))
             print("fill factor of of pw {}: {}".format(pw, fill_factor))
+            print("time elapsed: {:.2f}".format(end_time - start_time))
 
         draw_contact_and_voltage_map(self.output_data_path, test_pixel_width, file_prefix, contacts_mask)
 
