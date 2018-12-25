@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import typing
 from skimage.io import imread, imsave
 
-from pypvcell.solarcell import SQCell, MJCell
+from pypvcell.solarcell import SQCell, MJCell,SolarCell
 from pypvcell.illumination import load_astm
 from pypvcell.fom import isc, ff
 
@@ -35,8 +35,6 @@ class SpiceSolverTest(unittest.TestCase):
 
         # TODO simplify the illumination mask to np.ones
         # self.default_illuminationMask = imread(os.path.join(file_path, 'masks_illumination.png'))
-
-        self.default_contactsMask = imread(os.path.join(file_path, 'masks_sq_no_shades.png'))
 
         hrg = HighResGrid()
         self.default_contactsMask = hrg.metal_image
@@ -313,7 +311,7 @@ class SpiceSolverTest(unittest.TestCase):
 
         self.run_larger_1j_circuit(mj_cell, file_prefix="3j")
 
-    def run_larger_1j_circuit(self, input_solar_cells: SQCell,
+    def run_larger_1j_circuit(self, input_solar_cells: SolarCell,
                               file_prefix: str, illumination_mask=None, contacts_mask=None):
 
         if illumination_mask is None:
@@ -324,7 +322,8 @@ class SpiceSolverTest(unittest.TestCase):
 
         nx, ny = illumination_mask.shape
 
-        # For symmetry arguments (not completely true for the illumination), we can mode just 1/4 of the device and then
+        # For symmetry arguments (not completely true for the illumination),
+        # we can mode just 1/4 of the device and then
         # multiply the current by 4
         center_x = int(nx / 2)
         center_y = int(ny / 2)
@@ -334,7 +333,7 @@ class SpiceSolverTest(unittest.TestCase):
         imsave(os.path.join(self.output_data_path, "{}_ill1.png".format(file_prefix)), illumination_mask)
         imsave(os.path.join(self.output_data_path, "{}_contact1.png".format(file_prefix)), contacts_mask)
 
-        test_pixel_width = [2, 5, 10]
+        test_pixel_width = [5, 10]
 
         draw_merged_contact_images(self.output_data_path, test_pixel_width, file_prefix, contacts_mask)
 

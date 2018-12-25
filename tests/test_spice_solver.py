@@ -20,7 +20,7 @@ from .helper import draw_contact_and_voltage_map, draw_merged_contact_images, \
 
 from pypvcircuit.parse_spice_input import NodeReducer
 from pypvcircuit.spice_solver import SPICESolver, SPICESolver3D
-from pypvcircuit.util import make_3d_illumination, gen_profile
+from pypvcircuit.util import make_3d_illumination, gen_profile, HighResGrid, MetalGrid
 
 
 class SpiceSolverTest(unittest.TestCase):
@@ -294,7 +294,7 @@ class SpiceSolverTest(unittest.TestCase):
 
         self.gaas_1j.set_input_spectrum(ill)
 
-        self.run_larger_1j_circuit(self.gaas_1j, file_prefix="1j")
+        self.vary_pixel_width(self.gaas_1j, file_prefix="1j")
 
     def test_larger_3j_circuit(self):
         """
@@ -308,30 +308,38 @@ class SpiceSolverTest(unittest.TestCase):
         mj_cell = MJCell([self.ingap_1j, self.gaas_1j])
         mj_cell.set_input_spectrum(ill)
 
-        self.run_larger_1j_circuit(mj_cell, file_prefix="3j")
+        self.vary_pixel_width(mj_cell, file_prefix="3j")
 
-    def run_larger_1j_circuit(self, input_solar_cells: SQCell,
-                              file_prefix: str, illumination_mask=None, contacts_mask=None):
+    def test_highres_1j(self):
 
+        hrg = HighResGrid()
+        illumination_mask = np.ones_like(hrg.metal_image)
+        self.vary_pixel_width(self.gaas_1j, file_prefix="3j_highres",
+                              contacts_mask_obj=hrg,
+                              test_pixel_width=[5, 10], illumination_mask=illumination_mask)
+
+    def vary_pixel_width(self, input_solar_cells: SQCell,
+                         file_prefix: str, illumination_mask=None, contacts_mask_obj=None,
+                         test_pixel_width=[1, 2, 5, 10]):
+
+        l_r = self.lr
+        l_c = self.lc
         if illumination_mask is None:
             illumination_mask = self.default_illuminationMask
 
-        if contacts_mask is None:
+        if contacts_mask_obj is None:
             contacts_mask = self.default_contactsMask
 
-        nx, ny = illumination_mask.shape
+        if isinstance(contacts_mask_obj, MetalGrid):
+            contacts_mask = contacts_mask_obj.metal_image
+            l_r = contacts_mask_obj.lr
+            l_c = contacts_mask_obj.lc
 
-        # For symmetry arguments (not completely true for the illumination), we can mode just 1/4 of the device and then
-        # multiply the current by 4
-        center_x = int(nx / 2)
-        center_y = int(ny / 2)
-        illumination_mask = illumination_mask[center_x:, center_y:]
-        contacts_mask = contacts_mask[center_x:, center_y:]
+        illumination_mask = get_quater_image(illumination_mask)
+        contacts_mask = get_quater_image(contacts_mask)
 
         imsave(os.path.join(self.output_data_path, "{}_ill1.png".format(file_prefix)), illumination_mask)
         imsave(os.path.join(self.output_data_path, "{}_contact1.png".format(file_prefix)), contacts_mask)
-
-        test_pixel_width = [1, 2, 5, 10]
 
         draw_merged_contact_images(self.output_data_path, test_pixel_width, file_prefix, contacts_mask)
 
@@ -349,7 +357,7 @@ class SpiceSolverTest(unittest.TestCase):
             sps = SPICESolver(solarcell=input_solar_cells, illumination=illumination_mask,
                               metal_contact=contacts_mask, rw=pw, cw=pw, v_start=self.vini, v_end=self.vfin,
                               v_steps=self.step,
-                              l_r=self.lr, l_c=self.lc, h=self.h, spice_preprocessor=nd)
+                              l_r=l_r, l_c=l_c, h=self.h, spice_preprocessor=nd)
 
             np.save(os.path.join(self.output_data_path, "{}_vmap_{}.npy").format(file_prefix, pw),
                     sps.get_end_voltage_map())
@@ -368,7 +376,7 @@ class SpiceSolverTest(unittest.TestCase):
 
         draw_contact_and_voltage_map(self.output_data_path, test_pixel_width, file_prefix, contacts_mask)
 
-        np.savetxt(os.path.join(self.output_data_path, "{}_ingap_iv.csv".format(file_prefix)), result_vi.T,
+        np.savetxt(os.path.join(self.output_data_path, "{}_iv.csv".format(file_prefix)), result_vi.T,
                    delimiter=',')
 
         plt.savefig(os.path.join(self.output_data_path, "{}_1jfig.png".format(file_prefix)))
