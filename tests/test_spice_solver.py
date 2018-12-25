@@ -327,7 +327,7 @@ class SpiceSolverTest(unittest.TestCase):
 
         mj_cell = MJCell([self.ingap_1j, self.gaas_1j, self.ge_1j])
 
-        self.vary_pixel_width(mj_cell, file_prefix="1j_highres",
+        self.vary_pixel_width(mj_cell, file_prefix="3j_highres",
                               contacts_mask_obj=hrg,
                               test_pixel_width=[2, 3, 4, 5, 10], illumination_mask=illumination_mask)
 
