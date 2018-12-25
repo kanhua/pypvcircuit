@@ -39,9 +39,9 @@ class SpiceSolverTest(unittest.TestCase):
         self.default_contactsMask = imread(os.path.join(file_path, 'masks_sq_no_shades.png'))
 
         hrg = HighResGrid()
-        self.default_contactsMask = hrg.get_binary_image()
+        self.default_contactsMask = hrg.metal_image
 
-        self.default_illuminationMask = np.ones_like(self.default_contactsMask) * 100
+        self.default_illuminationMask = np.ones_like(self.default_contactsMask)
 
         # Size of the pixels (m)
         self.lr = hrg.lr
@@ -334,7 +334,7 @@ class SpiceSolverTest(unittest.TestCase):
         imsave(os.path.join(self.output_data_path, "{}_ill1.png".format(file_prefix)), illumination_mask)
         imsave(os.path.join(self.output_data_path, "{}_contact1.png".format(file_prefix)), contacts_mask)
 
-        test_pixel_width = [5, 10]
+        test_pixel_width = [2, 5, 10]
 
         draw_merged_contact_images(self.output_data_path, test_pixel_width, file_prefix, contacts_mask)
 
