@@ -10,6 +10,36 @@ import warnings
 from pypvcell.illumination import load_astm
 
 
+class MetalGrid(object):
+    def __init__(self):
+        self.metal_image = np.zeros((1, 1))  # dummy image
+        self.lr = 0
+        self.lc = 0
+
+    def get_binary_image(self):
+        return np.where(self.metal_image > 0, 1, 0)
+
+    def get_lc(self):
+        return self.lc
+
+    def get_lr(self):
+        return self.lr
+
+
+class HighResGrid(MetalGrid):
+
+    def __init__(self):
+        image_shape = (1000, 1000)
+        finger_n = 10
+        test_image = np.zeros(image_shape, dtype=np.uint8)
+        test_image = add_grid(test_image, finger_n, 0.01, 0.01)
+        test_image = add_busbar(test_image, bus_width=0.1, margin_c=0.02, margin_r=0.02)
+
+        self.metal_image = test_image
+        self.lr = 1e-6
+        self.lc = 1e-6
+
+
 def default_mask(image_shape: typing.Tuple[int, int], finger_n: int):
     """
     Generate a typical mask design from an image

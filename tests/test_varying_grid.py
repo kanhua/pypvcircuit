@@ -19,7 +19,7 @@ from pypvcell.fom import isc, ff
 from .helper import draw_contact_and_voltage_map, draw_merged_contact_images, get_quater_image
 
 from pypvcircuit.parse_spice_input import NodeReducer
-from pypvcircuit.util import default_mask
+from pypvcircuit.util import default_mask, HighResGrid
 from pypvcircuit.spice_solver import SPICESolver
 
 
@@ -66,6 +66,12 @@ class SpiceSolverTest(unittest.TestCase):
 
         plt.imshow(mask_image)
         plt.savefig(os.path.join(self.output_data_path, "generated_mask_image.png"))
+
+    def test_highres_patter(self):
+        hrg = HighResGrid()
+
+        plt.imshow(hrg.get_binary_image())
+        plt.savefig(os.path.join(self.output_data_path, "generated_highres_mask_image.png"))
 
     def test_bunch_n_grid(self):
         self.test_n_grid(grid_n=2, pw=5)
