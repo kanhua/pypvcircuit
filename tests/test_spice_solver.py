@@ -319,7 +319,7 @@ class SpiceSolverTest(unittest.TestCase):
         illumination_mask = np.ones_like(hrg.metal_image)
         self.vary_pixel_width(self.gaas_1j, file_prefix="1j_highres",
                               contacts_mask_obj=hrg,
-                              test_pixel_width=[1, 2, 3, 4, 5, 10], illumination_mask=illumination_mask)
+                              test_pixel_width=[10, 5, 4], illumination_mask=illumination_mask)
 
     def test_highres_3j(self):
         hrg = HighResGrid()
@@ -329,7 +329,7 @@ class SpiceSolverTest(unittest.TestCase):
 
         self.vary_pixel_width(mj_cell, file_prefix="3j_highres",
                               contacts_mask_obj=hrg,
-                              test_pixel_width=[2, 3, 4, 5, 10], illumination_mask=illumination_mask)
+                              test_pixel_width=[40, 20, 15, 10], illumination_mask=illumination_mask)
 
     def vary_pixel_width(self, input_solar_cells: SQCell,
                          file_prefix: str, illumination_mask=None, contacts_mask_obj=None,
