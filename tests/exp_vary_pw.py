@@ -124,5 +124,8 @@ class PWExp(object):
 
         yfp = open(os.path.join(self.output_data_path, "{}_record.yaml").format(self.file_prefix), 'w')
         yaml.dump({'pw': self.test_pixel_width,
-                   'time_elpased': self.elapsed_times}, yfp)
+                   'time_elpased': self.elapsed_times,
+                   'ff': self.ffs,
+                   'voc': self.vocs,
+                   'isc': self.iscs}, yfp)
         yfp.close()
