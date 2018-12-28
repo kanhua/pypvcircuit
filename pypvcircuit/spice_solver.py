@@ -13,6 +13,26 @@ from pypvcell.illumination import load_astm
 from pypvcell.spectrum import Spectrum
 
 
+def _get_steps(start_val, end_val, step):
+    """
+
+    The naive implementation
+    int(np.floor((self.v_end - self.v_start) / self.v_steps) + 1)
+    does not work
+    For example: 12/0.05 gives 23.9999999
+
+    :param start_val:
+    :param end_val:
+    :param step:
+    :return:
+    """
+
+    arr = np.arange(start_val, end_val, step)
+
+    return arr.size + 1
+
+
+
 class SPICESolver(object):
     """
     Base class of SPICE solver. The solver is launched in the contructor (__init__()).
@@ -41,7 +61,7 @@ class SPICESolver(object):
         self.V = None
         self.I = None
         self.v_junc = None
-        self.steps = int(np.floor((self.v_end - self.v_start) / self.v_steps) + 1)
+        self.steps = _get_steps(self.v_start, self.v_end, self.v_steps)
 
         self.spice_preprocessor = spice_preprocessor
 
