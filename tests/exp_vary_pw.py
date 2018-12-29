@@ -152,6 +152,6 @@ def plot_isc(ax, pixel_width, isc):
 
 
 def plot_voc(ax, pixel_width, voc):
-    ax.plot(pixel_width, voc)
+    ax.plot(pixel_width, voc, 'o-')
     ax.set_xlabel("down-sampling ratio")
     ax.set_ylabel("Voc")
