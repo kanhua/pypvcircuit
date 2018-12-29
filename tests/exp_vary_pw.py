@@ -137,3 +137,21 @@ def plot_time_ax(ax, pixel_width, elapsed_times):
     ax.plot(pixel_width, elapsed_times, 'o-')
     ax.set_xlabel("down-sampling ratio")
     ax.set_ylabel("execution time (sec)")
+
+
+def plot_fill_factor(ax, pixel_width, ff):
+    ax.plot(pixel_width, ff, 'o-')
+    ax.set_xlabel("down-sampling ratio")
+    ax.set_ylabel("fill factors")
+
+
+def plot_isc(ax, pixel_width, isc):
+    ax.plot(pixel_width, isc, 'o-')
+    ax.set_xlabel("down-sampling ratio")
+    ax.set_ylabel("Isc")
+
+
+def plot_voc(ax, pixel_width, voc):
+    ax.plot(pixel_width, voc)
+    ax.set_xlabel("down-sampling ratio")
+    ax.set_ylabel("Voc")

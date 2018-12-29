@@ -28,7 +28,7 @@ class MetalGrid(object):
 
 class HighResGrid(MetalGrid):
 
-    def __init__(self):
+    def __init__(self, finger_n=10):
         image_shape = (1000, 1000)
         finger_n = 10
         test_image = np.zeros(image_shape, dtype=np.uint8)
