@@ -97,9 +97,9 @@ class PWExp(object):
             print("Voc of pw {}: {:.2f}".format(pw, cell_voc))
             print("time elapsed: {:.2f} sec.".format(e_time))
             self.elapsed_times.append(e_time)
-            self.vocs.append(cell_voc)
-            self.iscs.append(calculated_isc)
-            self.ffs.append(fill_factor)
+            self.vocs.append(float(cell_voc))
+            self.iscs.append(float(calculated_isc))
+            self.ffs.append(float(fill_factor))
 
         draw_contact_and_voltage_map(self.output_data_path, self.test_pixel_width, self.file_prefix, self.contacts_mask)
 
@@ -116,7 +116,9 @@ class PWExp(object):
 
         plt.figure()
 
-        plt.plot(self.test_pixel_width, self.elapsed_times, 'o-')
+        fig, ax = plt.subplots()
+
+        plot_time_ax(ax, self.test_pixel_width, self.elapsed_times)
 
         plt.savefig(os.path.join(self.output_data_path, "{}_elapsed_time.png".format(self.file_prefix)), dpi=300)
 
@@ -129,3 +131,9 @@ class PWExp(object):
                    'voc': self.vocs,
                    'isc': self.iscs}, yfp)
         yfp.close()
+
+
+def plot_time_ax(ax, pixel_width, elapsed_times):
+    ax.plot(pixel_width, elapsed_times, 'o-')
+    ax.set_xlabel("down-sampling ratio")
+    ax.set_ylabel("execution time (sec)")
