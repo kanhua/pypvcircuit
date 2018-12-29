@@ -130,7 +130,7 @@ def highres_3j_batch():
         mg.lc = 1e-6
 
         pe = PWExp(illumination_mask, mg, vini=0, vfin=3.0, vstep=0.02,
-                   test_pixel_width=[5, 10, 15], file_prefix="highres_{}".format(grid_number))
+                   test_pixel_width=[10, 15, 20], file_prefix="highres_{}".format(fn))
 
         pe.vary_pixel_width(mj_cell)
 

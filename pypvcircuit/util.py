@@ -30,7 +30,6 @@ class HighResGrid(MetalGrid):
 
     def __init__(self, finger_n=10):
         image_shape = (1000, 1000)
-        finger_n = 10
         test_image = np.zeros(image_shape, dtype=np.uint8)
         test_image = add_grid(test_image, finger_n, 0.01, 0.01)
         test_image = add_busbar(test_image, bus_width=0.1, margin_c=0.02, margin_r=0.02)
