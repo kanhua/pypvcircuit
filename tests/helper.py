@@ -46,6 +46,8 @@ def draw_contact_and_voltage_map(output_data_path, test_pws, file_prefix: str, c
     r_image = get_merged_r_image(contact_mask, 1, 1)
     ax[0, -1].imshow(r_image)
     ax[0, -1].set_title("original")
+    fig.delaxes(ax[1,-1])
+    fig.tight_layout()
     fig.savefig(os.path.join(output_data_path, "{}_equiv_r_map_images.png".format(file_prefix)))
     plt.close(fig)
 
