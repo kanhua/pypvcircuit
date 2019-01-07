@@ -1,13 +1,38 @@
 import yaml
+import numpy as np
 import matplotlib.pyplot as plt
 from os.path import join
+
+from pypvcell.fom import ff, isc
 
 from pypvcircuit.util import HighResGrid
 from tests.exp_vary_pw import plot_time_ax, plot_fill_factor, plot_isc, plot_voc
 from tests.helper import draw_contact_and_voltage_map, get_quater_image
 
 data_path = "/Users/kanhua/Dropbox/Programming/solar-cell-circuit/tests/test_output_data/{}_record.yaml"
+iv_data_path = "/Users/kanhua/Dropbox/Programming/solar-cell-circuit/tests/test_output_data/{}_iv.csv"
 output_data_path = "/Users/kanhua/Dropbox/Programming/solar-cell-circuit/tests/test_output_data/"
+
+
+def plot_iv(ax, iv_file, pw):
+    iv = np.loadtxt(iv_file, delimiter=',')
+
+    for i in range(0, iv.shape[1], 2):
+        volt = iv[:, i]
+        curr = iv[:, i + 1]
+        isc_val = isc(volt, curr)
+        ff_val = ff(volt, curr)
+
+        ax.plot(volt, curr, label="PW: {}".format(pw[int(i / 2)], isc_val, ff_val), alpha=0.5)
+        ax.set_ylim(ymax=0)
+        ax.set_ylim(ymin=curr[0] * 1.5)
+
+        ax.set_xlabel("voltage (V)")
+        ax.set_ylabel("current (A)")
+
+    ax.legend()
+    ax.grid()
+
 
 test_set = ['highres_5', 'highres_10', 'highres_15']
 
@@ -19,7 +44,17 @@ for ts in test_set:
     fp = open(data_path.format(ts), 'r')
 
     data = yaml.load(fp)
+    fp.close()
 
+    # plot IV
+    fig_iv, ax_iv = plt.subplots()
+
+    plot_iv(ax_iv, iv_data_path.format(ts), data['pw'])
+
+    fig_iv.tight_layout()
+    fig_iv.savefig("/Users/kanhua/Dropbox/DDocuments/2018-equivalent-circuit/figs/{}_iv.png".format(ts), dpi=300)
+
+    # plot voltage map
     plot_time_ax(ax[0, 0], data['pw'], data['time_elpased'])
 
     plot_fill_factor(ax[1, 0], data['pw'], data['ff'])

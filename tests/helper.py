@@ -37,7 +37,7 @@ def draw_contact_and_voltage_map(output_data_path, test_pws, file_prefix: str, c
     for i, pw in enumerate(test_pws):
         r_image = get_merged_r_image(contact_mask, pw, pw)
         ax[0, i].imshow(r_image)
-        ax[0, i].set_title("{} pixels".format(pw))
+        ax[0, i].set_title("{} x".format(pw))
 
         voltage_map = np.load(os.path.join(output_data_path, "{}_vmap_{}.npy").format(file_prefix, pw))
 
