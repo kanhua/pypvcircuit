@@ -40,7 +40,7 @@ def plot_iv(ax, iv_file, pw):
     ax.grid()
 
 
-test_set = ['highres_triang_5', 'highres_triang_10', 'highres_triang_15']
+test_set = ['highres_triang_5mm_5', 'highres_triang_5mm_10', 'highres_triang_5mm_15']
 
 fig, ax = plt.subplots(2, 2, figsize=(2.5 * 2, 2.5 * 3.25 / 3.5 * 2))
 

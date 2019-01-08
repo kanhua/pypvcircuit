@@ -6,7 +6,9 @@ Utility functions for generating metal or illumination mask profile
 import numpy as np
 import typing
 import warnings
-from skimage.draw import polygon
+import os
+from skimage.draw import polygon, circle, rectangle
+from skimage.io import imread
 
 from pypvcell.illumination import load_astm
 
@@ -53,6 +55,40 @@ class HighResTriangGrid(MetalGrid):
         self.lc = 1e-6
 
 
+class CircleGrid(MetalGrid):
+
+    def __init__(self):
+        this_path = os.path.abspath(os.path.dirname(__file__))
+        mask_profile_file = os.path.join(this_path, "circle_contact.png")
+        mask_image = imread(mask_profile_file, as_gray=True) * 255
+        mask_image = mask_image.astype(np.uint8)
+        assert np.max(mask_image) == 255
+
+        self.metal_image = mask_image
+        self.lr = 1e-6
+        self.lc = 1e-6
+
+
+class CircleGenGrid(MetalGrid):
+
+    def __init__(self):
+        image_shape = (1000, 1000)
+        test_image = np.zeros(image_shape, dtype=np.uint8)
+        rr, cc = circle(500, 500, 450)
+        test_image[rr, cc] = 255
+
+        rr, cc = circle(500, 500, 400)
+        test_image[rr, cc] = 0
+
+        rr, cc = rectangle(start=(0, 490), end=(999, 510))
+        test_image[rr, cc] = 128
+
+        rr, cc = rectangle(start=(490, 0), end=(510, 999))
+        test_image[rr, cc] = 128
+
+        self.metal_image = test_image
+        self.lr = 1e-6
+        self.lc = 1e-6
 
 
 def default_mask(image_shape: typing.Tuple[int, int], finger_n: int):

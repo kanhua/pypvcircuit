@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 import matplotlib.pyplot as plt
 
-from pypvcircuit.util import add_triang_busbar
+from pypvcircuit.util import add_triang_busbar, CircleGenGrid
 
 
 class ContactProfileTest(unittest.TestCase):
@@ -14,6 +14,11 @@ class ContactProfileTest(unittest.TestCase):
         test_image = add_triang_busbar(test_image, bus_width=0.05, margin_c=0.02, margin_r=0.02)
 
         plt.imshow(test_image)
+        plt.show()
+
+    def test_circle_profile(self):
+        cr = CircleGenGrid()
+        plt.imshow(cr.metal_image)
         plt.show()
 
 
