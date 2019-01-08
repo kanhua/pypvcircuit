@@ -26,7 +26,7 @@ def get_merged_r_image_from_coordset(mask_image, sub_image_coord):
     for i in range(sub_image_coord.shape[0]):
         for j in range(sub_image_coord.shape[1]):
             a, b, c, d = sub_image_coord[i, j, :]
-            agg_image[i, j] = np.sum(mask_image[a:b, c:d])
+            agg_image[i, j] = np.mean(mask_image[a:b, c:d])
     return agg_image
 
 

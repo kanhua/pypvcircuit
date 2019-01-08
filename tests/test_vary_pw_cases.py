@@ -61,8 +61,6 @@ def baseline_3j_case():
     pe.vary_pixel_width(mj_cell)
 
 
-
-
 def highres_case():
     mg = HighResGrid()
 
@@ -81,7 +79,6 @@ def highres_case():
     pe = PWExp(illumination_mask, mg, vini=0, vfin=1.2, vstep=0.02, test_pixel_width=[5, 10, 15], file_prefix="t2")
 
     pe.vary_pixel_width(gaas_1j)
-
 
 
 def highres_3j():
@@ -159,11 +156,9 @@ def highres_triang_3j_batch():
         mg.lc = 1e-6
 
         pe = PWExp(illumination_mask, mg, vini=0, vfin=3.5, vstep=0.02,
-                   test_pixel_width=[20, 40], file_prefix="highres_triang_{}".format(fn))
+                   test_pixel_width=[10, 20, 50, 100], file_prefix="highres_triang_{}".format(fn))
 
         pe.vary_pixel_width(mj_cell)
-
-
 
 
 # baseline_3j_case()

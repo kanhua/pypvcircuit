@@ -5,7 +5,7 @@ from os.path import join
 
 from pypvcell.fom import ff, isc
 
-from pypvcircuit.util import HighResGrid
+from pypvcircuit.util import HighResGrid, HighResTriangGrid
 from tests.exp_vary_pw import plot_time_ax, plot_fill_factor, plot_isc, plot_voc
 from tests.helper import draw_contact_and_voltage_map, get_quater_image
 
@@ -40,7 +40,7 @@ def plot_iv(ax, iv_file, pw):
     ax.grid()
 
 
-test_set = ['highres_5', 'highres_10', 'highres_15']
+test_set = ['highres_triang_5', 'highres_triang_10', 'highres_triang_15']
 
 fig, ax = plt.subplots(2, 2, figsize=(2.5 * 2, 2.5 * 3.25 / 3.5 * 2))
 
@@ -67,7 +67,7 @@ for ts in test_set:
     plot_isc(ax[0, 1], data['pw'], data['isc'])
     plot_voc(ax[1, 1], data['pw'], data['voc'])
 
-    mg = HighResGrid(finger_n=int(ab[1]))
+    mg = HighResTriangGrid(finger_n=int(ab[-1]))
 
     contacts_mask = mg.metal_image
 
