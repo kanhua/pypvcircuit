@@ -142,21 +142,21 @@ def plot_time_ax(ax, pixel_width, elapsed_times, ts):
 
 
 def plot_fill_factor(ax, pixel_width, ff):
-    ax.plot(pixel_width, ff, 'o-', alpha=0.5)
+    ax.plot(pixel_width, ff, 'o-')
     ax.set_xlabel("downsampling ratio")
     ax.set_ylabel("fill factors")
     ax.grid()
 
 
 def plot_isc(ax, pixel_width, isc):
-    ax.plot(pixel_width, np.array(isc) * 1e6, 'o-', alpha=0.5)
+    ax.plot(pixel_width, np.array(isc) * 1e6, 'o-')
     ax.set_xlabel("downsampling ratio")
     ax.set_ylabel("Isc (uA)")
     ax.grid()
 
 
 def plot_voc(ax, pixel_width, voc):
-    ax.plot(pixel_width, voc, 'o-', alpha=0.5)
+    ax.plot(pixel_width, voc, 'o-')
     ax.set_xlabel("downsampling ratio")
     ax.set_ylabel("Voc (V)")
     ax.grid()

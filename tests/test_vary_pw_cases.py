@@ -4,7 +4,8 @@ from skimage.io import imread
 
 from pypvcell.solarcell import SQCell, MJCell
 
-from pypvcircuit.util import make_3d_illumination, gen_profile, HighResGrid, MetalGrid
+from pypvcircuit.util import make_3d_illumination, \
+    gen_profile, HighResGrid, MetalGrid, HighResTriangGrid
 
 from tests.helper import draw_contact_and_voltage_map, draw_merged_contact_images, \
     get_quater_image, contact_ratio, draw_illumination_3d
@@ -135,10 +136,42 @@ def highres_3j_batch():
         pe.vary_pixel_width(mj_cell)
 
 
+def highres_triang_3j_batch():
+    grid_number = [5, 10, 15]
+
+    gaas_1j = SQCell(1.42, 300, 1)
+    ingap_1j = SQCell(1.87, 300, 1)
+    ingaas_1j = SQCell(0.7, 300, 1)
+
+    mj_cell = MJCell([ingap_1j, gaas_1j, ingaas_1j])
+
+    for fn in grid_number:
+        mg = HighResTriangGrid(finger_n=fn)
+
+        contacts_mask = mg.metal_image
+
+        contacts_mask = get_quater_image(contacts_mask)
+
+        illumination_mask = np.ones_like(contacts_mask)
+
+        mg.metal_image = contacts_mask
+        mg.lr = 1e-6
+        mg.lc = 1e-6
+
+        pe = PWExp(illumination_mask, mg, vini=0, vfin=3.0, vstep=0.02,
+                   test_pixel_width=[20, 40], file_prefix="highres_triang_{}".format(fn))
+
+        pe.vary_pixel_width(mj_cell)
+
+
+
+
 # baseline_3j_case()
 
 # highres_case()
 
 # highres_3j()
 
-highres_3j_batch()
+# highres_3j_batch()
+
+highres_triang_3j_batch()

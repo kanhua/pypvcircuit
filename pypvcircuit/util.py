@@ -6,6 +6,7 @@ Utility functions for generating metal or illumination mask profile
 import numpy as np
 import typing
 import warnings
+from skimage.draw import polygon
 
 from pypvcell.illumination import load_astm
 
@@ -31,12 +32,27 @@ class HighResGrid(MetalGrid):
     def __init__(self, finger_n=10):
         image_shape = (1000, 1000)
         test_image = np.zeros(image_shape, dtype=np.uint8)
-        test_image = add_grid(test_image, finger_n, 0.01, 0.01)
+        test_image = add_grid(test_image, finger_n, 0.01, 0.02)
         test_image = add_busbar(test_image, bus_width=0.1, margin_c=0.02, margin_r=0.02)
 
         self.metal_image = test_image
         self.lr = 1e-6
         self.lc = 1e-6
+
+
+class HighResTriangGrid(MetalGrid):
+
+    def __init__(self, finger_n=10):
+        image_shape = (1000, 1000)
+        test_image = np.zeros(image_shape, dtype=np.uint8)
+        test_image = add_grid(test_image, finger_n, 0.01, 0.02)
+        test_image = add_triang_busbar(test_image, bus_width=0.1, margin_c=0.02, margin_r=0.02)
+
+        self.metal_image = test_image
+        self.lr = 1e-6
+        self.lc = 1e-6
+
+
 
 
 def default_mask(image_shape: typing.Tuple[int, int], finger_n: int):
@@ -125,6 +141,55 @@ def add_busbar(image: np.ndarray, bus_width, margin_r, margin_c):
     image[margin_r_p:margin_r_p + bus_width_p, margin_c_p:lc - margin_c_p] = 255
 
     image[lr - margin_r_p - bus_width_p:lr - margin_r_p, margin_c_p:lc - margin_c_p] = 255
+
+    return image
+
+
+def add_triang_busbar(image: np.ndarray, bus_width, margin_r, margin_c,
+                      triangle_short_edge=0.1,
+                      triangle_long_edge=0.3):
+    image = add_busbar(image, bus_width, margin_r, margin_c)
+
+    lr = image.shape[0]
+    lc = image.shape[1]
+
+    bus_width_p = int(lr * bus_width)
+    margin_r_p = int(image.shape[0] * margin_r)
+    margin_c_p = int(image.shape[1] * margin_c)
+
+    t_s = int(triangle_short_edge * lr)
+    t_l = int(triangle_long_edge * lc)
+
+    # Four corners of the bus bar on the top
+    x_u0 = margin_r_p
+    x_u1 = margin_r_p + bus_width_p
+    y_u0 = margin_c_p
+    y_u1 = lc - margin_c_p
+
+    # Four corners of the bus bar in the bottom
+    x_d0 = lr - margin_r_p - bus_width_p
+    x_d1 = lr - margin_r_p
+    y_d0 = margin_c_p
+    y_d1 = lc - margin_c_p
+
+    # up left
+    rr, cc = polygon(np.array([x_u1, x_u1, x_u1 + t_s]), np.array([y_u0, y_u0 + t_l, y_u0]))
+    image[rr, cc] = 255
+
+    # up right
+    rr, cc = polygon(np.array([x_u1, x_u1, x_u1 + t_s]),
+                     np.array([y_u1 - t_l, y_u1, y_u1]))
+    image[rr, cc] = 255
+
+    # bottom left
+    rr, cc = polygon(np.array([x_d0 - t_s, x_d0, x_d0]),
+                     np.array([y_d0, y_d0 + t_l, y_d0]))
+    image[rr, cc] = 255
+
+    # bottom right
+    rr, cc = polygon(np.array([x_d0, x_d0 - t_s, x_d0]),
+                     np.array([y_d1 - t_l, y_d1, y_d1]))
+    image[rr, cc] = 255
 
     return image
 
