@@ -208,7 +208,8 @@ def circle_grid_3j():
 
     mj_cell = MJCell([ingap_1j, gaas_1j, ge_1j])
 
-    pe = PWExp(illumination_mask, mg, vini=0, vfin=3.5, vstep=0.02, test_pixel_width=[20, 50], file_prefix="circle_t3")
+    pe = PWExp(illumination_mask, mg, vini=0, vfin=3.5, vstep=0.02, test_pixel_width=[10, 20, 50, 100],
+               file_prefix="circle_t3")
 
     pe.vary_pixel_width(mj_cell)
 
@@ -223,6 +224,6 @@ def circle_grid_3j():
 
 # highres_triang_3j_batch()
 
-# circle_grid_3j()
+circle_grid_3j()
 
 highres_triang_3j_larger_batch()
