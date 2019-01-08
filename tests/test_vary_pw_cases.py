@@ -141,7 +141,7 @@ def highres_triang_3j_batch():
 
     gaas_1j = SQCell(1.42, 300, 1)
     ingap_1j = SQCell(1.87, 300, 1)
-    ingaas_1j = SQCell(0.7, 300, 1)
+    ingaas_1j = SQCell(1.0, 300, 1)
 
     mj_cell = MJCell([ingap_1j, gaas_1j, ingaas_1j])
 
@@ -158,7 +158,7 @@ def highres_triang_3j_batch():
         mg.lr = 1e-6
         mg.lc = 1e-6
 
-        pe = PWExp(illumination_mask, mg, vini=0, vfin=3.0, vstep=0.02,
+        pe = PWExp(illumination_mask, mg, vini=0, vfin=3.5, vstep=0.02,
                    test_pixel_width=[20, 40], file_prefix="highres_triang_{}".format(fn))
 
         pe.vary_pixel_width(mj_cell)
