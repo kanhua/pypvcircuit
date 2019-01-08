@@ -9,6 +9,12 @@ from pypvcircuit.util import HighResGrid
 from tests.exp_vary_pw import plot_time_ax, plot_fill_factor, plot_isc, plot_voc
 from tests.helper import draw_contact_and_voltage_map, get_quater_image
 
+import matplotlib as mpl
+
+mpl.rc('font', size=8)  # Change font.size
+mpl.rc('xtick', labelsize=8)  # change xtick.labelsize
+mpl.rc('ytick', labelsize=8)  # change ytick.labelsize
+
 data_path = "/Users/kanhua/Dropbox/Programming/solar-cell-circuit/tests/test_output_data/{}_record.yaml"
 iv_data_path = "/Users/kanhua/Dropbox/Programming/solar-cell-circuit/tests/test_output_data/{}_iv.csv"
 output_data_path = "/Users/kanhua/Dropbox/Programming/solar-cell-circuit/tests/test_output_data/"
@@ -19,7 +25,7 @@ def plot_iv(ax, iv_file, pw):
 
     for i in range(0, iv.shape[1], 2):
         volt = iv[:, i]
-        curr = iv[:, i + 1]
+        curr = iv[:, i + 1] * 1e6
         isc_val = isc(volt, curr)
         ff_val = ff(volt, curr)
 
@@ -28,7 +34,7 @@ def plot_iv(ax, iv_file, pw):
         ax.set_ylim(ymin=curr[0] * 1.5)
 
         ax.set_xlabel("voltage (V)")
-        ax.set_ylabel("current (A)")
+        ax.set_ylabel("current (uA)")
 
     ax.legend()
     ax.grid()
@@ -36,7 +42,7 @@ def plot_iv(ax, iv_file, pw):
 
 test_set = ['highres_5', 'highres_10', 'highres_15']
 
-fig, ax = plt.subplots(2, 2, figsize=(9, 6))
+fig, ax = plt.subplots(2, 2, figsize=(2.5 * 2, 2.5 * 3.25 / 3.5 * 2))
 
 for ts in test_set:
     ab = ts.split("_")
@@ -47,7 +53,7 @@ for ts in test_set:
     fp.close()
 
     # plot IV
-    fig_iv, ax_iv = plt.subplots()
+    fig_iv, ax_iv = plt.subplots(figsize=(2.5, 2.5 * 3.25 / 3.5))
 
     plot_iv(ax_iv, iv_data_path.format(ts), data['pw'])
 
@@ -55,7 +61,7 @@ for ts in test_set:
     fig_iv.savefig("/Users/kanhua/Dropbox/DDocuments/2018-equivalent-circuit/figs/{}_iv.png".format(ts), dpi=300)
 
     # plot voltage map
-    plot_time_ax(ax[0, 0], data['pw'], data['time_elpased'])
+    plot_time_ax(ax[0, 0], data['pw'], data['time_elpased'], ts)
 
     plot_fill_factor(ax[1, 0], data['pw'], data['ff'])
     plot_isc(ax[0, 1], data['pw'], data['isc'])

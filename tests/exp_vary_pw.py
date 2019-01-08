@@ -133,25 +133,30 @@ class PWExp(object):
         yfp.close()
 
 
-def plot_time_ax(ax, pixel_width, elapsed_times):
-    ax.plot(pixel_width, elapsed_times, 'o-')
-    ax.set_xlabel("down-sampling ratio")
+def plot_time_ax(ax, pixel_width, elapsed_times, ts):
+    ax.plot(pixel_width, elapsed_times, 'o-', alpha=0.5, label=ts)
+    ax.set_xlabel("downsampling ratio")
     ax.set_ylabel("execution time (sec)")
+    ax.legend()
+    ax.grid()
 
 
 def plot_fill_factor(ax, pixel_width, ff):
-    ax.plot(pixel_width, ff, 'o-')
-    ax.set_xlabel("down-sampling ratio")
+    ax.plot(pixel_width, ff, 'o-', alpha=0.5)
+    ax.set_xlabel("downsampling ratio")
     ax.set_ylabel("fill factors")
+    ax.grid()
 
 
 def plot_isc(ax, pixel_width, isc):
-    ax.plot(pixel_width, isc, 'o-')
-    ax.set_xlabel("down-sampling ratio")
-    ax.set_ylabel("Isc")
+    ax.plot(pixel_width, np.array(isc) * 1e6, 'o-', alpha=0.5)
+    ax.set_xlabel("downsampling ratio")
+    ax.set_ylabel("Isc (uA)")
+    ax.grid()
 
 
 def plot_voc(ax, pixel_width, voc):
-    ax.plot(pixel_width, voc, 'o-')
-    ax.set_xlabel("down-sampling ratio")
-    ax.set_ylabel("Voc")
+    ax.plot(pixel_width, voc, 'o-', alpha=0.5)
+    ax.set_xlabel("downsampling ratio")
+    ax.set_ylabel("Voc (V)")
+    ax.grid()
