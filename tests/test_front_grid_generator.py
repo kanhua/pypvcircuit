@@ -1,8 +1,11 @@
 import unittest
 import numpy as np
+import os
 import matplotlib.pyplot as plt
 
-from pypvcircuit.util import add_triang_busbar, CircleGenGrid
+from pypvcircuit.util import add_triang_busbar, CircleGenGrid, HighResTriangGrid
+
+this_path = os.path.abspath(os.path.dirname(__file__))
 
 
 class ContactProfileTest(unittest.TestCase):
@@ -20,6 +23,17 @@ class ContactProfileTest(unittest.TestCase):
         cr = CircleGenGrid()
         plt.imshow(cr.metal_image)
         plt.show()
+
+    def test_draw_triang_profile(self):
+        fig, ax = plt.subplots(ncols=2, nrows=2, figsize=(2.5, 2.5))
+        for i, fn in enumerate([5, 10, 15, 20]):
+            hg = HighResTriangGrid(finger_n=fn)
+            ax[i // 2, i % 2].imshow(hg.metal_image)
+            ax[i // 2, i % 2].set_axis_off()
+            ax[i // 2, i % 2].set_title("{} fingers".format(fn), fontsize=8)
+
+        # fig.tight_layout()
+        fig.savefig(os.path.join(this_path, "triang_grid.png"), dpi=300)
 
 
 if __name__ == '__main__':

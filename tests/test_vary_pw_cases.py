@@ -270,6 +270,34 @@ def circle_grid_3j():
     pe.vary_pixel_width(mj_cell)
 
 
+def highres_triang_3j_500x_10mm_batch():
+    grid_number = [5, 10, 15]
+
+    gaas_1j = SQCell(1.42, 300, 1)
+    ingap_1j = SQCell(1.87, 300, 1)
+    ingaas_1j = SQCell(1.0, 300, 1)
+
+    mj_cell = MJCell([ingap_1j, gaas_1j, ingaas_1j])
+
+    for fn in grid_number:
+        mg = HighResTriangGrid(finger_n=fn)
+
+        contacts_mask = mg.metal_image
+
+        contacts_mask = get_quater_image(contacts_mask)
+
+        illumination_mask = np.ones_like(contacts_mask) * 500
+
+        mg.metal_image = contacts_mask
+        mg.lr = 1e-5
+        mg.lc = 1e-5
+
+        pe = PWExp(illumination_mask, mg, vini=0, vfin=4.5, vstep=0.02,
+                   test_pixel_width=[10, 20, 50, 100], file_prefix="highres_triang_500x_10mm_{}".format(fn))
+
+        pe.vary_pixel_width(mj_cell)
+
+
 # baseline_3j_case()
 
 # highres_case()
