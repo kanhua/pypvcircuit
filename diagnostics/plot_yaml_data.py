@@ -40,7 +40,7 @@ def plot_iv(ax, iv_file, pw):
     ax.grid()
 
 
-test_set = ['highres_triang_5', 'highres_triang_10', 'highres_triang_15']
+test_set = ['highres_triang_500x_10mm_5', 'highres_triang_500x_10mm_10', 'highres_triang_500x_10mm_15']
 
 fig, ax = plt.subplots(2, 2, figsize=(2.5 * 2, 2.5 * 3.25 / 3.5 * 2))
 
@@ -76,6 +76,7 @@ for ts in test_set:
     draw_contact_and_voltage_map(output_data_path, data['pw'], ts, contacts_mask)
 
 fig.tight_layout()
-fig.savefig("/Users/kanhua/Dropbox/Programming/solar-cell-circuit/tests/test_output_data/highres_triang_fom.png",
-            dpi=300)
-fig.savefig("/Users/kanhua/Dropbox/DDocuments/2018-equivalent-circuit/figs/highres_triang_fom.png", dpi=300)
+fig.savefig(
+    "/Users/kanhua/Dropbox/Programming/solar-cell-circuit/tests/test_output_data/highres_triang_500x_10mm_fom.png",
+    dpi=300)
+fig.savefig("/Users/kanhua/Dropbox/DDocuments/2018-equivalent-circuit/figs/highres_triang_500x_10mm_fom.png", dpi=300)

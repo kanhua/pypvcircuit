@@ -271,7 +271,7 @@ def circle_grid_3j():
 
 
 def highres_triang_3j_500x_10mm_batch():
-    grid_number = [5, 10, 15]
+    grid_number = [5, 10, 15, 25, 50]
 
     gaas_1j = SQCell(1.42, 300, 1)
     ingap_1j = SQCell(1.87, 300, 1)
