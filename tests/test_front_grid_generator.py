@@ -33,7 +33,7 @@ class ContactProfileTest(unittest.TestCase):
             ax[i // 2, i % 2].set_title("{} fingers".format(fn), fontsize=8)
 
         # fig.tight_layout()
-        fig.savefig(os.path.join(this_path, "triang_grid.png"), dpi=300)
+        fig.savefig(os.path.join(this_path, 'test_output_data', "triang_grid.png"), dpi=300)
 
 
 if __name__ == '__main__':
