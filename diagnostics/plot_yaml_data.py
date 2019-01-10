@@ -2,6 +2,7 @@ import yaml
 import numpy as np
 import matplotlib.pyplot as plt
 from os.path import join
+import os
 
 from pypvcell.fom import ff, isc
 
@@ -11,13 +12,24 @@ from tests.helper import draw_contact_and_voltage_map, get_quater_image
 
 import matplotlib as mpl
 
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("setfile", help="A yaml file that does the basic setting")
+args = parser.parse_args()
+fp = open(args.setfile, 'r')
+print(args.setfile)
+
+setting = yaml.load(fp)
+fp.close()
+
+data_path = os.path.join(setting['data_path'], "{}_record.yaml")
+iv_data_path = os.path.join(setting['iv_data_path'], "{}_iv.csv")
+output_data_path = setting['output_data_path']
+
 mpl.rc('font', size=8)  # Change font.size
 mpl.rc('xtick', labelsize=8)  # change xtick.labelsize
 mpl.rc('ytick', labelsize=8)  # change ytick.labelsize
-
-data_path = "/Users/kanhua/Dropbox/Programming/solar-cell-circuit/tests/test_output_data/{}_record.yaml"
-iv_data_path = "/Users/kanhua/Dropbox/Programming/solar-cell-circuit/tests/test_output_data/{}_iv.csv"
-output_data_path = "/Users/kanhua/Dropbox/Programming/solar-cell-circuit/tests/test_output_data/"
 
 
 def plot_iv(ax, iv_file, pw):
@@ -40,14 +52,13 @@ def plot_iv(ax, iv_file, pw):
     ax.grid()
 
 
-test_set = ['highres_triang_500x_10mm_5', 'highres_triang_500x_10mm_10', 'highres_triang_500x_10mm_15']
+test_set = setting['fingers_set']
 
 fig, ax = plt.subplots(2, 2, figsize=(2.5 * 2, 2.5 * 3.25 / 3.5 * 2))
 
 for ts in test_set:
-    ab = ts.split("_")
-
-    fp = open(data_path.format(ts), 'r')
+    full_filename = setting['file_prefix'] + "_{}".format(ts)
+    fp = open(data_path.format(full_filename), 'r')
 
     data = yaml.load(fp)
     fp.close()
@@ -55,10 +66,11 @@ for ts in test_set:
     # plot IV
     fig_iv, ax_iv = plt.subplots(figsize=(2.5, 2.5 * 3.25 / 3.5))
 
-    plot_iv(ax_iv, iv_data_path.format(ts), data['pw'])
+    plot_iv(ax_iv, iv_data_path.format(full_filename), data['pw'])
 
     fig_iv.tight_layout()
-    fig_iv.savefig("/Users/kanhua/Dropbox/DDocuments/2018-equivalent-circuit/figs/{}_iv.png".format(ts), dpi=300)
+    fig_iv.savefig(os.path.join(setting['mirror_output_data_path'], "{}_iv.png".format(full_filename)),
+                   dpi=300)
 
     # plot voltage map
     plot_time_ax(ax[0, 0], data['pw'], data['time_elpased'], ts)
@@ -67,16 +79,15 @@ for ts in test_set:
     plot_isc(ax[0, 1], data['pw'], data['isc'])
     plot_voc(ax[1, 1], data['pw'], data['voc'])
 
-    mg = HighResTriangGrid(finger_n=int(ab[-1]))
+    mg = HighResTriangGrid(finger_n=int(ts))
 
     contacts_mask = mg.metal_image
 
     contacts_mask = get_quater_image(contacts_mask)
 
-    draw_contact_and_voltage_map(output_data_path, data['pw'], ts, contacts_mask)
+    draw_contact_and_voltage_map(output_data_path, data['pw'], full_filename, contacts_mask)
 
 fig.tight_layout()
-fig.savefig(
-    "/Users/kanhua/Dropbox/Programming/solar-cell-circuit/tests/test_output_data/highres_triang_500x_10mm_fom.png",
-    dpi=300)
-fig.savefig("/Users/kanhua/Dropbox/DDocuments/2018-equivalent-circuit/figs/highres_triang_500x_10mm_fom.png", dpi=300)
+fom_filename = "{}_fom.png".format(setting['file_prefix'])
+fig.savefig(os.path.join(setting['output_data_path'], fom_filename), dpi=300)
+fig.savefig(os.path.join(setting['mirror_output_data_path'], fom_filename), dpi=300)
