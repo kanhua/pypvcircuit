@@ -306,11 +306,11 @@ def highres_triang_3j_500x_10mm_batch():
 
 # highres_3j_batch()
 
-# highres_triang_3j_batch()
+highres_triang_3j_batch()
 
 # circle_grid_3j()
 
 # highres_triang_3j_larger_batch()
 
 # highres_triang_3j_200x_batch()
-highres_triang_3j_500x_10mm_batch()
+# highres_triang_3j_500x_10mm_batch()

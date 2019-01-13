@@ -52,6 +52,14 @@ def plot_iv(ax, iv_file, pw):
     ax.grid()
 
 
+def draw_voltage_map(output_data_path, test_pws, axes_to_draw, file_prefix: str):
+    for i, pw in enumerate(test_pws):
+        voltage_map = np.load(os.path.join(output_data_path, "{}_vmap_{}.npy").format(file_prefix, pw))
+        # axes_to_draw[i].set_axis_off()
+        axes_to_draw[i].set_title("{} x".format(test_pws[i]))
+        axes_to_draw[i].imshow(voltage_map)
+
+
 test_set = setting['fingers_set']
 
 fig, ax = plt.subplots(2, 2, figsize=(2.5 * 2, 2.5 * 3.25 / 3.5 * 2))
@@ -64,12 +72,12 @@ for ts in test_set:
     fp.close()
 
     # plot IV
-    fig_iv, ax_iv = plt.subplots(figsize=(2.5, 2.5 * 3.25 / 3.5))
+    fig_iv, ax_iv = plt.subplots(figsize=(2.5, 2.5))
 
     plot_iv(ax_iv, iv_data_path.format(full_filename), data['pw'])
 
     fig_iv.tight_layout()
-    fig_iv.savefig(os.path.join(setting['mirror_output_data_path'], "{}_iv.png".format(full_filename)),
+    fig_iv.savefig(os.path.join(setting['output_data_path'], "{}_iv.png".format(full_filename)),
                    dpi=300)
 
     # plot voltage map
@@ -86,6 +94,12 @@ for ts in test_set:
     contacts_mask = get_quater_image(contacts_mask)
 
     draw_contact_and_voltage_map(output_data_path, data['pw'], full_filename, contacts_mask)
+
+    voltage_map_fig, voltage_map_ax = plt.subplots(2, 2, figsize=(2.5, 2.5))
+    voltage_map_ax = voltage_map_ax.ravel()
+    draw_voltage_map(setting['data_path'], data['pw'], voltage_map_ax, full_filename)
+    voltage_map_fig.tight_layout()
+    voltage_map_fig.savefig(os.path.join(output_data_path, "{}_equiv_map_images.png".format(full_filename)), dpi=300)
 
 fig.tight_layout()
 fom_filename = "{}_fom.png".format(setting['file_prefix'])
