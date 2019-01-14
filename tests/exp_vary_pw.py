@@ -137,7 +137,7 @@ def plot_time_ax(ax, pixel_width, elapsed_times, ts):
     ax.plot(pixel_width, elapsed_times, 'o-', alpha=0.5, label=ts)
     ax.set_xlabel("downsampling ratio")
     ax.set_ylabel("execution time (sec)")
-    ax.legend()
+    ax.legend(title="fingers")
     ax.grid()
 
 

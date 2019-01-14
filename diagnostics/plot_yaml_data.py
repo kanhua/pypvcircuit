@@ -37,16 +37,16 @@ def plot_iv(ax, iv_file, pw):
 
     for i in range(0, iv.shape[1], 2):
         volt = iv[:, i]
-        curr = iv[:, i + 1] * 1e6
+        curr = iv[:, i + 1] * 1e3
         isc_val = isc(volt, curr)
         ff_val = ff(volt, curr)
 
-        ax.plot(volt, curr, label="PW: {}".format(pw[int(i / 2)], isc_val, ff_val), alpha=0.5)
+        ax.plot(volt, curr, label="{} x".format(pw[int(i / 2)], isc_val, ff_val), alpha=0.5)
         ax.set_ylim(ymax=0)
         ax.set_ylim(ymin=curr[0] * 1.5)
 
         ax.set_xlabel("voltage (V)")
-        ax.set_ylabel("current (uA)")
+        ax.set_ylabel("current (mA)")
 
     ax.legend()
     ax.grid()
