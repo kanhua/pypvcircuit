@@ -112,7 +112,7 @@ r1 1 0 3.3k
 .end
     """
 
-    data = solve_circuit(circuit, engine=engine, raw=False)
+    data = solve_circuit(circuit, engine=engine, raw=False, postprocess_input=None)
     print(data)
 
     plt.plot(data[0], data[1])

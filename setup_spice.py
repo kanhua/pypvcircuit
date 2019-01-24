@@ -1,4 +1,4 @@
-import spice.config_tools as config
+import pypvcircuit.config_tool as config
 import sys
 
 ngspice_path=sys.argv[1]
