@@ -1,0 +1,4 @@
+[External programs]
+spice = /Applications/ngspice/bin/ngspice
+smarts = 
+
