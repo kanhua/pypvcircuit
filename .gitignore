@@ -19,6 +19,7 @@ spice_out.txt
 spice_in_raw.txt
 shared/
 data/
+figs/
 
 tests/test_output_data/
 

@@ -1,7 +1,7 @@
-data_path: "/Users/kanhua/Dropbox/Programming/solar-cell-circuit/tests/test_output_data/"
-iv_data_path: "/Users/kanhua/Dropbox/Programming/solar-cell-circuit/tests/test_output_data/"
-output_data_path: "/Users/kanhua/Dropbox/Programming/solar-cell-circuit/tests/test_output_data/"
+data_path: "./tests/test_output_data/"
+iv_data_path: "./tests/test_output_data/"
+output_data_path: "./tests/test_output_data/"
 # output data path to somewhere else, such as the the figs folder of the paper manuscript
-mirror_output_data_path: "/Users/kanhua/Dropbox/DDocuments/2018-equivalent-circuit/figs/"
+mirror_output_data_path: "./figs/"
 file_prefix: "highres_triang"
 fingers_set: !!seq [!!int 5, !!int 10, !!int 15]

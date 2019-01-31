@@ -15,6 +15,22 @@ home_folder = os.path.expanduser('~')
 user_config_file = os.path.join(config_file_dir, 'user_config.txt')
 
 
+def save_user_config(config_data):
+    """ Saves the current user configuration
+
+    :return: None
+    """
+    with open(user_config_file, 'w') as fp:
+        config_data.write(fp)
+
+
+def generate_default_setting():
+    default_config_data = ConfigParser()
+    default_config_data.read(os.path.join(config_file_dir, default_config_file))
+
+    save_user_config(default_config_data)
+
+
 def load_user_config_data():
     if not os.path.exists(user_config_file):
         generate_default_setting()
@@ -35,13 +51,6 @@ def check_config(config_data):
 user_config_data = load_user_config_data()
 
 
-def generate_default_setting():
-    default_config_data = ConfigParser()
-    default_config_data.read(os.path.join(config_file_dir, default_config_file))
-
-    save_user_config(default_config_data)
-
-
 def set_location_of_spice(location):
     """ Sets the location of the spice executable. It does not test if it works.
 
@@ -59,10 +68,12 @@ def set_location_of_spice(location):
     save_user_config(user_config_data)
 
 
-def save_user_config(config_data):
-    """ Saves the current user configuration
+def set_location_of_output(location):
+    if not os.path.exists(user_config_file):
+        generate_default_setting()
 
-    :return: None
-    """
-    with open(user_config_file, 'w') as fp:
-        config_data.write(fp)
+    user_config_data = ConfigParser()
+    user_config_data.read(user_config_file)
+
+    user_config_data['Path_config']['output_path'] = location
+    save_user_config(user_config_data)

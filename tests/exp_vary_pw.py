@@ -16,6 +16,7 @@ from tests.helper import draw_contact_and_voltage_map, draw_merged_contact_image
 from pypvcircuit.parse_spice_input import NodeReducer
 from pypvcircuit.spice_solver import SPICESolver, SPICESolver3D
 from pypvcircuit.util import make_3d_illumination, gen_profile, HighResGrid, MetalGrid
+from pypvcircuit.config_tool import user_config_data
 
 import yaml
 
@@ -30,9 +31,9 @@ class PWExp(object):
         self.l_r = contacts_mask_obj.lr
         self.l_c = contacts_mask_obj.lc
 
-        file_path = os.path.abspath(os.path.dirname(__file__))
+        file_path = user_config_data['Path_config']['output_path']
 
-        self.output_data_path = os.path.join(file_path, 'test_output_data')
+        self.output_data_path = file_path
 
         self.vini = vini
         self.vfin = vfin
