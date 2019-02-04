@@ -303,6 +303,12 @@ class PaperFigure(unittest.TestCase):
     def test_triang_3j(self):
         highres_triang_3j_batch()
 
+    def test_triang_3j_500x(self):
+        highres_triang_3j_500x_batch()
+
+    def test_triang_3j_500x_10mm(self):
+        highres_triang_3j_500x_10mm_batch()
+
 
 if __name__ == '__main__':
     unittest.main()
