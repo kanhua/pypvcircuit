@@ -7,6 +7,7 @@ import os
 from pypvcell.fom import ff, isc
 
 from pypvcircuit.util import HighResGrid, HighResTriangGrid
+from pypvcircuit.config_tool import user_config_data
 from tests.exp_vary_pw import plot_time_ax, plot_fill_factor, plot_isc, plot_voc
 from tests.helper import draw_contact_and_voltage_map, get_quater_image
 
@@ -23,9 +24,10 @@ print(args.setfile)
 setting = yaml.load(fp)
 fp.close()
 
-data_path = os.path.join(setting['data_path'], "{}_record.yaml")
-iv_data_path = os.path.join(setting['iv_data_path'], "{}_iv.csv")
-output_data_path = setting['output_data_path']
+data_output_path = user_config_data['Path_config']['output_path']
+data_path = os.path.join(data_output_path, "{}_record.yaml")
+iv_data_path = os.path.join(data_output_path, "{}_iv.csv")
+output_data_path = data_output_path
 
 mpl.rc('font', size=8)  # Change font.size
 mpl.rc('xtick', labelsize=8)  # change xtick.labelsize
@@ -77,7 +79,7 @@ for ts in test_set:
     plot_iv(ax_iv, iv_data_path.format(full_filename), data['pw'])
 
     fig_iv.tight_layout()
-    fig_iv.savefig(os.path.join(setting['output_data_path'], "{}_iv.png".format(full_filename)),
+    fig_iv.savefig(os.path.join(data_output_path, "{}_iv.png".format(full_filename)),
                    dpi=300)
 
     # plot voltage map
@@ -97,11 +99,17 @@ for ts in test_set:
 
     voltage_map_fig, voltage_map_ax = plt.subplots(2, 2, figsize=(2.5, 2.5))
     voltage_map_ax = voltage_map_ax.ravel()
-    draw_voltage_map(setting['data_path'], data['pw'], voltage_map_ax, full_filename)
+    draw_voltage_map(output_data_path, data['pw'], voltage_map_ax, full_filename)
     voltage_map_fig.tight_layout()
     voltage_map_fig.savefig(os.path.join(output_data_path, "{}_equiv_map_images.png".format(full_filename)), dpi=300)
 
 fig.tight_layout()
 fom_filename = "{}_fom.png".format(setting['file_prefix'])
-fig.savefig(os.path.join(setting['output_data_path'], fom_filename), dpi=300)
-fig.savefig(os.path.join(setting['mirror_output_data_path'], fom_filename), dpi=300)
+fig.savefig(os.path.join(output_data_path, fom_filename), dpi=300)
+
+if "mirror_output_path" in user_config_data['Path_config'].keys():
+
+    fig.savefig(os.path.join(user_config_data['Path_config']["mirror_output_path"], fom_filename), dpi=300)
+else:
+
+    print("No mirrored output path")

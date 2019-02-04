@@ -1,5 +1,4 @@
 [External programs]
 spice = /Applications/ngspice/bin/ngspice
-smarts = 
 [Path_config]
-output_path="/Users/kanhua/Dropbox/Programming/solar-cell-circuit/tests/test_output_data/"
+output_path="/path/to/output_data/"

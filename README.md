@@ -5,6 +5,15 @@ This repository demonstrates how to use pypvcell and ngspice to simulate solar c
 
 ![network_sim](./doc_images/network_simulation_3d.png)
 
+## How to run this software
+
+### Instructions of installation
+See [install.md](./install.md) for how to install.
+
+### Run in on CodeOcean
+
+This repository is mirrored on [CodeOcean](https://codeocean.com/capsule/2397906/).
+
 
 ## Package dependency
 
@@ -14,17 +23,9 @@ You have to install [pypvcell](https://github.com/kanhua/pypvcell) before runnin
 
 A brief description of the model is [here](./docs/calculation_principles.md). PDF version is [here](./docs/calculation_principles.pdf).
 
-## Definition of resistances
+## Reproduce the results
 
-The program calculates the value of resistors in each pixel.
-- Resistance of back contact: R_back=max(R_back, 1e-16)
-- r_{series}=R_{series}/(areal pixel)/gn
-- Sheet resistance (ohm/ sq)
-- rs_{top} = Rs_{top}/gn
-- rs_{bot} = Rs_{bot}/gn
-- rho=R*A/l=R*(w*h/l), A is area of cross section, w and h are width and height of the cross-section, respectively, and l is the length of the cable. rho is conductivity
-- r_contact=R_{contact}/(Lx*Ly)/gn
-- the minimal resistance is 1e-16.
+Run [```run_demo_suites.sh```](./run_demo_suites.sh) to reproduce the figures on the paper.
 
 
 ## Known issues

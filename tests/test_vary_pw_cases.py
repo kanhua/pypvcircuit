@@ -1,4 +1,5 @@
 import os
+import unittest
 import numpy as np
 from skimage.io import imread
 
@@ -298,6 +299,15 @@ def highres_triang_3j_500x_10mm_batch():
         pe.vary_pixel_width(mj_cell)
 
 
+class PaperFigure(unittest.TestCase):
+    def test_triang_3j(self):
+        highres_triang_3j_batch()
+
+
+if __name__ == '__main__':
+    unittest.main()
+
+
 # baseline_3j_case()
 
 # highres_case()
@@ -306,7 +316,7 @@ def highres_triang_3j_500x_10mm_batch():
 
 # highres_3j_batch()
 
-highres_triang_3j_batch()
+# highres_triang_3j_batch()
 
 # circle_grid_3j()
 
