@@ -3,6 +3,52 @@ import pandas as pd
 import numpy as np
 
 
+def to_ill_mtx(df, r_pixel=100, c_pixel=100):
+    columns = ['x', 'y', 'z', 'l', 'm', 'n', 'power', 'wavelength']
+
+    df = df.sort_values(by=['wavelength'])
+
+    # TODO sort this?
+    all_wavelength = df['wavelength'].unique()
+
+    r_min = np.min(df['x'])
+    r_max = np.max(df['x'])
+
+    c_min = np.min(df['z'])
+    c_max = np.max(df['z'])
+
+    # initilize the 3D array for storing the matrix
+    ill_mtx = np.empty((r_pixel, c_pixel, all_wavelength.size))
+
+    dr = (r_max - r_min) / r_pixel
+    dc = (c_max - c_min) / c_pixel
+
+    r_index = np.floor_divide(df['x'] - r_min, dr).astype(np.uint)
+    c_index = np.floor_divide(df['z'] - c_min, dc).astype(np.uint)
+
+    df['i'] = r_index
+    df['j'] = c_index
+
+    df['ij'] = r_index * r_pixel + c_index
+
+    sel_col = ['power', 'wavelength', 'ij']
+    grouped = df.loc[:, sel_col].groupby('wavelength')
+
+    # TODO store each wavelength slice into matrix
+    for wavelength, subgroup in grouped:
+        mtx = subgroup.groupby('ij').sum()
+
+        ij_value = mtx.index.values
+        r_index = np.floor_divide(ij_value, r_pixel)
+        c_index = np.mod(ij_value, r_pixel)
+
+        print("wavelength: {}".format(wavelength))
+        index = np.flatnonzero(all_wavelength == wavelength)  # TODO may use searchsorted?
+        ill_mtx[r_index, c_index, index] = mtx['power']
+
+    return ill_mtx
+
+
 class RayData(object):
 
     def __init__(self, filename):
@@ -58,34 +104,14 @@ class RayData(object):
         columns = ['x', 'y', 'z', 'l', 'm', 'n', 'power', 'wavelength']
 
         self.df = pd.DataFrame(self.data_array, columns=columns)
-        self.df = self.df.sort_values(by=['wavelength'])
 
-        wavelength = self.df['wavelength'].unique()
+        self.ill_mtx = to_ill_mtx(self.df)
 
-        r_min = np.min(self.df['x'])
-        r_max = np.max(self.df['x'])
+    def sel_wavelength(self, selected_wavelength):
 
-        c_min = np.min(self.df['z'])
-        c_max = np.max(self.df['z'])
+        wdf = self.df.loc[self.df['wavelength'] == selected_wavelength, :]
 
-        r_pixel = 100
-        c_pixel = 100
-
-        dr = (r_max - r_min) / r_pixel
-        dc = (c_max - c_min) / c_pixel
-
-        r_index = np.floor_divide(self.df['x'] - r_min, dr)
-        c_index = np.floor_divide(self.df['z'] - c_min, dc)
-
-        self.df['i'] = r_index
-        self.df['j'] = c_index
-
-        self.df['ij'] = r_index * r_pixel + c_index
-
-        grouped = self.df.groupby('ij').sum()
-        print(grouped)
-
-        # grouped
+        return wdf
 
 
 if __name__ == "__main__":
@@ -102,6 +128,9 @@ if __name__ == "__main__":
     rd.sort_array()
     print(rd.df.head())
     print(rd.df['wavelength'].unique())
-    print(rd.df['i'].unique().size)
-    print(rd.df['j'].unique().size)
     print(rd.df.shape)
+
+    import matplotlib.pyplot as plt
+
+    plt.imshow(rd.ill_mtx[:, :, 0])
+    plt.show()
