@@ -30,23 +30,15 @@ or you could just download the zip
 
 ![download](doc_images/download_clone.png)
 
-
-## Recommended file structure
-
-```
-- YourWorkFolder
-  |- install-mainprogram.ps1
-  |- Spice64
-  |- YourOwnDataFolder
-  |- solar-cell-circuit-master
-```
-
-Do not put any data into ```solar-cell-circuit-master``` folder, 
-because the automated software updating script may overwrite any file you created.
-
-
 ## Run setup file
 
+Run
+```bash
+
+python setup_spice.py SPICEPATH OUTPUTPATH
+
+
+```
 
 
 ## Set PYTHONPATH
