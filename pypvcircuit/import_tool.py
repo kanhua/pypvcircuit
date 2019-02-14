@@ -3,28 +3,28 @@ import pandas as pd
 import numpy as np
 
 
-def to_ill_mtx(df, r_pixel=100, c_pixel=100):
+def to_ill_mtx(df: pd.DataFrame, r_pixel=100, c_pixel=100,
+               r_max=None, r_min=None, c_max=None, c_min=None,
+               r_coord='x', c_coord='z'):
     columns = ['x', 'y', 'z', 'l', 'm', 'n', 'power', 'wavelength']
+
+    assert set(df.columns) == set(columns)
 
     df = df.sort_values(by=['wavelength'])
 
-    # TODO sort this?
     all_wavelength = df['wavelength'].unique()
 
-    r_min = np.min(df['x'])
-    r_max = np.max(df['x'])
+    c_max, c_min, r_max, r_min = _check_boundary(c_coord, c_max, c_min, df, r_coord, r_max, r_min)
 
-    c_min = np.min(df['z'])
-    c_max = np.max(df['z'])
-
-    # initilize the 3D array for storing the matrix
-    ill_mtx = np.empty((r_pixel, c_pixel, all_wavelength.size))
+    # initilize the 3D array for storing the matrix.
+    # Note that all elements should be zeros.
+    ill_mtx = np.zeros((r_pixel, c_pixel, all_wavelength.size))
 
     dr = (r_max - r_min) / r_pixel
     dc = (c_max - c_min) / c_pixel
 
-    r_index = np.floor_divide(df['x'] - r_min, dr).astype(np.uint)
-    c_index = np.floor_divide(df['z'] - c_min, dc).astype(np.uint)
+    r_index = np.floor_divide(df[r_coord] - r_min, dr).astype(np.uint)
+    c_index = np.floor_divide(df[c_coord] - c_min, dc).astype(np.uint)
 
     df['i'] = r_index
     df['j'] = c_index
@@ -34,7 +34,6 @@ def to_ill_mtx(df, r_pixel=100, c_pixel=100):
     sel_col = ['power', 'wavelength', 'ij']
     grouped = df.loc[:, sel_col].groupby('wavelength')
 
-    # TODO store each wavelength slice into matrix
     for wavelength, subgroup in grouped:
         mtx = subgroup.groupby('ij').sum()
 
@@ -43,16 +42,41 @@ def to_ill_mtx(df, r_pixel=100, c_pixel=100):
         c_index = np.mod(ij_value, r_pixel)
 
         print("wavelength: {}".format(wavelength))
-        index = np.flatnonzero(all_wavelength == wavelength)  # TODO may use searchsorted?
+        index = np.searchsorted(all_wavelength, wavelength)
         ill_mtx[r_index, c_index, index] = mtx['power']
 
-    return ill_mtx
+    return ill_mtx, all_wavelength
+
+
+def _check_boundary(c_coord, c_max, c_min, df, r_coord, r_max, r_min):
+    if r_max is None:
+        r_max = np.max(df[r_coord])
+    else:
+        if r_max <= np.max(df[r_coord]):
+            raise ValueError("r_max is out of bound")
+    if c_max is None:
+        c_max = np.max(df[c_coord])
+    else:
+        if c_max <= np.max(df[c_coord]):
+            raise ValueError("c_max is out of bound")
+    if r_min is None:
+        r_min = np.min(df[r_coord])
+    else:
+        if r_min > np.min(df[r_coord]):
+            raise ValueError("r_min is out of bound")
+    if c_min is None:
+        c_min = np.min(df[c_coord])
+    else:
+        if c_min > np.min(df[c_coord]):
+            raise ValueError("c_min is out of bound")
+    return c_max, c_min, r_max, r_min
 
 
 class RayData(object):
 
     def __init__(self, filename):
         self.df = None
+        self.wavelength = None
         int_byte = 4
         float_byte = 4
 
@@ -105,7 +129,7 @@ class RayData(object):
 
         self.df = pd.DataFrame(self.data_array, columns=columns)
 
-        self.ill_mtx = to_ill_mtx(self.df)
+        self.ill_mtx, self.wavelength = to_ill_mtx(self.df)
 
     def sel_wavelength(self, selected_wavelength):
 
