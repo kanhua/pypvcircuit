@@ -1,4 +1,7 @@
-## Install the software suite by Powershell Script (Beta)
+# Enabling PowerShell in you Windows environment
+
+Some powershell scripts are prepared along side with this software for facilitating some daily operations.
+Here's how to setup the environment of PowerShell.
 
 ### Step 1: Install the latest version of Powershell
 
@@ -49,12 +52,4 @@ For security, we switch the execution policy back.
 > Set-ExecutionPolicy restricted
 ```
 
-## Uninstall the software
 
-1. Run ```Uninstall-Miniconda3.exe``` in C:\Users\<yourUserName>\Miniconda3 or
-or C:\Users\<yourUserName>\Anaconda3
-
-2. Delete ```.solcore_config``` in C:\Users\<yourUserName>\
-
-3. Delete solar-cell-circuit program folder (e.g. solar-cell-circuit-master).
-This also deletes ngspice.
