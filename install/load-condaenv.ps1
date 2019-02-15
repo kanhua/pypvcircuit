@@ -1,3 +1,10 @@
+<#
+
+.DESCRIPTION
+This scripts add Conda script folder to PATH variable ($Env:Path)
+
+#>
+
 # Quick launch of jupyter notebook
 $conda_path=Join-Path $env:USERPROFILE "Anaconda3"
 $conda_bin=Join-Path "$conda_path" "Library\bin"

@@ -43,6 +43,25 @@ class SPICESolver(object):
                  illumination_spectrum: typing.Optional[Spectrum] = None,
                  illumination_wavelength: typing.Optional[np.ndarray] = None,
                  illumination_unit='x'):
+        """
+        This function initialize the mesh and runs the network simulation.
+
+        :param solarcell: the Pypvcell solar cell class
+        :param illumination: a 2D or 3D numpy array
+        :param metal_contact: a 2D numpy array that describes the metal contact
+        :param rw: the downsampling ratio in row direction
+        :param cw: the downsampling ration in column direction
+        :param v_start: the value of starting voltage
+        :param v_end:  the value of the end voltage
+        :param v_steps: the voltage step
+        :param l_r: the physical width of pixel in row direction (meter)
+        :param l_c: the physical widht of pixel in column direction (meter)
+        :param h: the height of the finger
+        :param spice_preprocessor: a preprocessor for processing the netlist file before solving it. It is typically to be set to a nodereducer class, i.e. preprocessor=NodeReducer()
+        :param illumination_spectrum:
+        :param illumination_wavelength: a 1D wavelenght array. The size should be identical t
+        :param illumination_unit: The unit of illumination matrix. It can either be 'x' (concentration) or 'W' (watt)
+        """
 
         self.solarcell = solarcell
         self.metal_contact = metal_contact
@@ -53,6 +72,7 @@ class SPICESolver(object):
         self.illumination = illumination
         self.illumination_wavelength = illumination_wavelength
 
+        assert illumination_unit == 'x' or illumination_unit == 'W'
         self.illumination_unit = illumination_unit
 
         if illumination_spectrum is None:
