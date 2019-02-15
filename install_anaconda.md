@@ -58,5 +58,3 @@ or C:\Users\<yourUserName>\Anaconda3
 
 3. Delete solar-cell-circuit program folder (e.g. solar-cell-circuit-master).
 This also deletes ngspice.
-
-## Change the path environment variables (Advanced)

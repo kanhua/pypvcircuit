@@ -1,4 +1,4 @@
-name: solcore5
+name: pypvcircuit
 dependencies:
   - numpy
   - scipy

@@ -8,6 +8,8 @@
 *.exe
 Spice64/
 private_data/
+private_docs/
+
 solcore5-master/
 deps/
 tmp_out/
