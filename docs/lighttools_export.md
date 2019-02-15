@@ -1,9 +1,9 @@
-# Export from LightTools
+# Export the illumination from LightTools
 
 This document describes how to export the ray data from LightTools that can be used as the input.
 
 
-1. Select the receiver data that you would like to output.
+1. Select the receiver that you would like to output.
 2. In Menu item, select Analysis -> Export Receiver Rays
 ![export_1](doc_images/lighttools_export_1.png)
 3. In the Options form, select the file name and the following options:
