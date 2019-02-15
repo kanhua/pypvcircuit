@@ -1,14 +1,13 @@
-# How to install (Windows PowerShell script)
+# How to install
 
 ## Prerequisites
-This script will download and install the following software:
+Pypvcircuit needs the following software to work:
 
 1. [Anaconda](https://www.anaconda.com/) or [Miniconda](https://conda.io/miniconda.html): A python language distribution made for scientific computing.
 2. NGSpice: A circuit network library
+3. Pypvcell: a python tool for solar cell
 
 All the software will be installed in a folder of your choice.
-Installation of this software suite will not require the authorization of administrator of the OS.
-
 
 ## Install pypvcell
 
@@ -34,15 +33,29 @@ or you could just download the zip
 
 Run
 ```bash
-
 python setup_spice.py SPICEPATH OUTPUTPATH
-
 
 ```
 
 
 ## Set PYTHONPATH
 
+Include pypvcircuit project folder into your PYTHONPATH so that your program can find this program.
+By project folder, we refer to the folder you unzipped from the downloaded zip file from github.
+This folder is named of ```pypvcircuit-master```.
+Add this into your ```PYTHONPATH```
 
+In a unix like environment, run
+```bash
+export PYTHONPATH=$PYTHONPATH:"yourpath/to/pypvcircuit-master"
+```
+
+In windows you can do it by the following command in PowerShell:
+
+```powershell
+
+$Env:PYTHONPATH += ";your\path\to\pypvcircuit-master"
+
+```
 
 

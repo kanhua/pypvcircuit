@@ -21,6 +21,7 @@ because the automated software updating script may overwrite any file you create
 ## Install Anaconda and ngspice
 
 
+Installation of this software suite will not require the authorization of administrator of the OS.
 
 ## Maintain and update the package
 
