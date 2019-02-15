@@ -41,7 +41,8 @@ class SPICESolver(object):
     def __init__(self, solarcell: SolarCell, illumination: np.ndarray, metal_contact: np.ndarray,
                  rw: int, cw: int, v_start, v_end, v_steps, l_r, l_c, h, spice_preprocessor=None,
                  illumination_spectrum: typing.Optional[Spectrum] = None,
-                 illumination_wavelength: typing.Optional[np.ndarray] = None):
+                 illumination_wavelength: typing.Optional[np.ndarray] = None,
+                 illumination_unit='x'):
 
         self.solarcell = solarcell
         self.metal_contact = metal_contact
@@ -51,6 +52,8 @@ class SPICESolver(object):
             illumination = np.ones_like(metal_contact, dtype=np.float)
         self.illumination = illumination
         self.illumination_wavelength = illumination_wavelength
+
+        self.illumination_unit = illumination_unit
 
         if illumination_spectrum is None:
             self.spectrum = load_astm("AM1.5g")
@@ -134,7 +137,6 @@ class SPICESolver(object):
 
                 # set concentration
                 self.solarcell.set_input_spectrum(illumination_value * self.spectrum)
-
                 px = PixelProcessor(self.solarcell, self.l_r, self.l_c, h=self.finger_h, gn=self.gn)
 
                 spice_body += px.node_string(r_index, c_index, sub_image=sub_image)
@@ -234,9 +236,15 @@ class SPICESolver3D(SPICESolver):
                             coord_set[r_index, c_index, 2]:coord_set[r_index, c_index, 3]]
 
                 # set concentration
-                sp = Spectrum(self.illumination_wavelength, illumination_value, x_unit='nm')
+                if self.illumination_unit == 'x':
+                    sp = Spectrum(self.illumination_wavelength, illumination_value, x_unit='nm')
 
-                self.solarcell.set_input_spectrum(self.spectrum * sp)
+                    self.solarcell.set_input_spectrum(self.spectrum * sp)
+                elif self.illumination_unit == 'W':
+                    sp = Spectrum(self.illumination_wavelength, illumination_value, x_unit='nm',
+                                  y_unit='mm**-2')
+                    # TODO setting y_unit here is not very robust.
+                    self.solarcell.set_input_spectrum(sp)
 
                 px = PixelProcessor(self.solarcell, self.l_r, self.l_c, h=self.finger_h, gn=self.gn)
 

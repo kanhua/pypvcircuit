@@ -41,7 +41,6 @@ def to_ill_mtx(df: pd.DataFrame, r_pixel=100, c_pixel=100,
         r_index = np.floor_divide(ij_value, r_pixel)
         c_index = np.mod(ij_value, r_pixel)
 
-        print("wavelength: {}".format(wavelength))
         index = np.searchsorted(all_wavelength, wavelength)
         ill_mtx[r_index, c_index, index] = mtx['power']
 
@@ -123,15 +122,27 @@ class RayData(object):
         rows = int(len(self.data_array) / 8)
         self.data_array = np.array(self.data_array).reshape((rows, 8))
 
-    def sort_array(self):
+    def get_ill_mtx(self, r_pixel=100, c_pixel=100,
+                    r_max=None, r_min=None, c_max=None, c_min=None,
+                    r_coord='x', c_coord='z'):
 
         columns = ['x', 'y', 'z', 'l', 'm', 'n', 'power', 'wavelength']
 
         self.df = pd.DataFrame(self.data_array, columns=columns)
 
-        self.ill_mtx, self.wavelength = to_ill_mtx(self.df)
+        self.ill_mtx, self.wavelength = to_ill_mtx(self.df, r_pixel, c_pixel,
+                                                   r_max, r_min, c_max, c_min,
+                                                   r_coord, c_coord)
 
-    def sel_wavelength(self, selected_wavelength):
+        return self.ill_mtx, self.wavelength
+
+    def sel_wavelength(self, selected_wavelength) -> pd.DataFrame:
+        """
+        Return the frame with the selected wavelength
+
+        :param selected_wavelength:
+        :return:
+        """
 
         wdf = self.df.loc[self.df['wavelength'] == selected_wavelength, :]
 
@@ -149,7 +160,7 @@ if __name__ == "__main__":
     print("origin z: {}".format(rd.z0))
     print(rd.data_array)
 
-    rd.sort_array()
+    rd.get_ill_mtx()
     print(rd.df.head())
     print(rd.df['wavelength'].unique())
     print(rd.df.shape)

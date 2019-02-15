@@ -22,6 +22,7 @@ from .helper import draw_contact_and_voltage_map, draw_merged_contact_images, \
 from pypvcircuit.parse_spice_input import NodeReducer
 from pypvcircuit.spice_solver import SPICESolver, SPICESolver3D
 from pypvcircuit.util import make_3d_illumination, gen_profile, HighResGrid, MetalGrid
+from pypvcircuit.import_tool import RayData
 
 import yaml
 
@@ -172,7 +173,6 @@ class SpiceSolverTest(unittest.TestCase):
 
         input_spectrum = load_astm("AM1.5g")
         self.gaas_1j.set_input_spectrum(input_spectrum)
-
         wavelength_data, _ = input_spectrum.get_spectrum(to_x_unit='nm')
 
         sps = SPICESolver3D(solarcell=self.gaas_1j, illumination=illumination_mask_3d,
@@ -253,12 +253,16 @@ class SpiceSolverTest(unittest.TestCase):
 
         nd = NodeReducer()
 
-        mj_cell.set_input_spectrum(load_astm("AM1.5g"))
+        input_spectrum = load_astm("AM1.5g")
+        wavelength_data, _ = input_spectrum.get_spectrum(to_x_unit='nm')
+
+        mj_cell.set_input_spectrum(input_spectrum)
 
         sps = SPICESolver3D(solarcell=mj_cell, illumination=illumination_mask_3d,
                             metal_contact=metal_mask, rw=pw, cw=pw, v_start=self.vini, v_end=vfin,
                             v_steps=step,
-                            l_r=self.lr, l_c=self.lc, h=self.h, spice_preprocessor=nd)
+                            l_r=self.lr, l_c=self.lc, h=self.h, spice_preprocessor=nd,
+                            illumination_wavelength=wavelength_data)
 
         sps_2d = SPICESolver(solarcell=mj_cell, illumination=illumination_mask_2d,
                              metal_contact=metal_mask, rw=pw, cw=pw, v_start=self.vini, v_end=vfin,
@@ -282,6 +286,96 @@ class SpiceSolverTest(unittest.TestCase):
         plt.show()
 
         not_metal = np.logical_not(np.where(metal_mask > 0, 1, 0))
+
+        mj_cell.set_input_spectrum(load_astm("AM1.5g"))
+        # estimated_isc = self.gaas_1j.jsc * self.lc * self.lr * np.sum(illumination_mask_2d * not_metal)
+        # device_photo_active_area=self.lc*self.lr*np.sum()
+        # print(estimated_isc)
+        print("2D illumination solver isc:{}".format(sps_2d.I[0]))
+        print("3D illumination solver isc:{}".format(sps.I[0]))
+        # print(self.gaas_1j.jsc)
+
+    def test_3d_illumination_3J_from_raydata(self):
+        """
+        Test if 3D illumination loaded from ray data
+
+        :return:
+        """
+
+        mj_cell = MJCell([self.ingap_1j, self.gaas_1j, self.ge_1j])
+
+        pw = 5
+
+        vfin = 3.0
+        step = 0.02
+
+        # Load metal mask
+        metal_mask = get_quater_image(self.default_contactsMask)
+        plt.figure()
+
+        plt.imshow(metal_mask)
+        plt.show()
+
+        # Load the illumination from ray data
+        # TODO the file path is temporary
+        file = r"C:\Users\kanhu\OneDrive\Documents\LightTools-tutorial\exporty_rays_binary_1mm.1.ray"
+
+        rd = RayData(file)
+
+        illumination_mask_3d, wl = rd.get_ill_mtx(r_pixel=metal_mask.shape[0],
+                                                  c_pixel=metal_mask.shape[1], r_max=0.5, r_min=-0.5,
+                                                  c_max=6.5, c_min=5.5)
+
+        wllen = wl.size
+
+        fig, ax = draw_illumination_3d(illumination_mask_3d, wl, [0, int(wllen / 3), int(wllen / 3 * 2), -1])
+
+        fig.savefig(os.path.join(self.output_data_path, 'aberrated_profile.png'), dpi=300)
+
+        fig.show()
+
+        illumination_mask_2d = gen_profile(metal_mask.shape[0], metal_mask.shape[1], bound_ratio=0.7)
+        plt.figure()
+        plt.imshow(illumination_mask_2d)
+
+        plt.title("no aberration")
+        plt.savefig(os.path.join(self.output_data_path, "no_aberration_profile.png"))
+        plt.show()
+
+        nd = NodeReducer()
+
+        input_spectrum = load_astm("AM1.5g")
+
+        wavelength_data, _ = input_spectrum.get_spectrum(to_x_unit='nm')
+
+        mj_cell.set_input_spectrum(input_spectrum)
+
+        sps = SPICESolver3D(solarcell=mj_cell, illumination=illumination_mask_3d,
+                            metal_contact=metal_mask, rw=pw, cw=pw, v_start=self.vini, v_end=vfin,
+                            v_steps=step,
+                            l_r=self.lr, l_c=self.lc, h=self.h, spice_preprocessor=nd,
+                            illumination_wavelength=wl, illumination_unit='W')
+
+        sps_2d = SPICESolver(solarcell=mj_cell, illumination=illumination_mask_2d,
+                             metal_contact=metal_mask, rw=pw, cw=pw, v_start=self.vini, v_end=vfin,
+                             v_steps=step,
+                             l_r=self.lr, l_c=self.lc, h=self.h, spice_preprocessor=nd)
+
+        device_area = (metal_mask.size * self.lc * self.lr)
+
+        plt.figure()
+        plt.plot(sps.V, sps.I / device_area, label="from ray data")
+        plt.plot(sps_2d.V, sps_2d.I / device_area, label="2D reference")
+        plt.xlabel("voltage (V)")
+        plt.ylabel("current density (A/m^2)")
+        plt.grid()
+        plt.legend()
+
+        plt.ylim(ymax=0, ymin=np.min(sps_2d.I / device_area) * 1.2)
+
+        plt.savefig(os.path.join(self.output_data_path, "raydata_iv.png"), dpi=300)
+
+        plt.show()
 
         mj_cell.set_input_spectrum(load_astm("AM1.5g"))
         # estimated_isc = self.gaas_1j.jsc * self.lc * self.lr * np.sum(illumination_mask_2d * not_metal)
