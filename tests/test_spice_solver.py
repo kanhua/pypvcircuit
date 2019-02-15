@@ -170,12 +170,17 @@ class SpiceSolverTest(unittest.TestCase):
 
         nd = NodeReducer()
 
-        self.gaas_1j.set_input_spectrum(load_astm("AM1.5g"))
+        input_spectrum = load_astm("AM1.5g")
+        self.gaas_1j.set_input_spectrum(input_spectrum)
+
+        wavelength_data, _ = input_spectrum.get_spectrum(to_x_unit='nm')
 
         sps = SPICESolver3D(solarcell=self.gaas_1j, illumination=illumination_mask_3d,
                             metal_contact=metal_mask, rw=pw, cw=pw, v_start=self.vini, v_end=vfin,
                             v_steps=step,
-                            l_r=self.lr, l_c=self.lc, h=self.h, spice_preprocessor=nd)
+                            l_r=self.lr, l_c=self.lc, h=self.h,
+                            spice_preprocessor=nd,
+                            illumination_wavelength=wavelength_data)
 
         sps_2d = SPICESolver(solarcell=self.gaas_1j, illumination=illumination_mask_2d,
                              metal_contact=metal_mask, rw=pw, cw=pw, v_start=self.vini, v_end=vfin,

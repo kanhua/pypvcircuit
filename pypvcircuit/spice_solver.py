@@ -32,7 +32,6 @@ def _get_steps(start_val, end_val, step):
     return arr.size + 1
 
 
-
 class SPICESolver(object):
     """
     Base class of SPICE solver. The solver is launched in the contructor (__init__()).
@@ -40,7 +39,9 @@ class SPICESolver(object):
     """
 
     def __init__(self, solarcell: SolarCell, illumination: np.ndarray, metal_contact: np.ndarray,
-                 rw: int, cw: int, v_start, v_end, v_steps, l_r, l_c, h, spice_preprocessor=None):
+                 rw: int, cw: int, v_start, v_end, v_steps, l_r, l_c, h, spice_preprocessor=None,
+                 illumination_spectrum: typing.Optional[Spectrum] = None,
+                 illumination_wavelength: typing.Optional[np.ndarray] = None):
 
         self.solarcell = solarcell
         self.metal_contact = metal_contact
@@ -49,7 +50,12 @@ class SPICESolver(object):
         if illumination is None:
             illumination = np.ones_like(metal_contact, dtype=np.float)
         self.illumination = illumination
-        self.spectrum = load_astm("AM1.5g")
+        self.illumination_wavelength = illumination_wavelength
+
+        if illumination_spectrum is None:
+            self.spectrum = load_astm("AM1.5g")
+        else:
+            self.spectrum = illumination_spectrum
         self.l_r = l_r
         self.l_c = l_c
         self.finger_h = h
@@ -181,11 +187,10 @@ class SPICESolver(object):
 
 
 class SPICESolver3D(SPICESolver):
-    """
 
-    #TODO for now we assume the wavelengths of the reference spectrum is identical to load_astm("AM1.5g)
+    def _check_illumination_wavelength(self):
 
-    """
+        assert self.illumination_wavelength.size == self.illumination.shape[2]
 
     def _find_gn(self):
         """
@@ -209,12 +214,18 @@ class SPICESolver3D(SPICESolver):
         return 1 / isc * 100
 
     def _write_nodes(self, coord_set):
+
+        self._check_illumination_wavelength()
+
         spice_body = ""
         r_pixels, c_pixels, _ = coord_set.shape
         new_illumination = resize_illumination_3d(self.illumination, self.metal_contact, coord_set, 0)
         assert new_illumination.shape == (r_pixels, c_pixels, self.illumination.shape[2])
+
         self.r_node_num = r_pixels
         self.c_node_num = c_pixels
+
+        # procedures: run thought all x and y pixels
         for c_index in range(c_pixels):
             for r_index in range(r_pixels):
                 illumination_value = new_illumination[r_index, c_index, :]
@@ -223,10 +234,7 @@ class SPICESolver3D(SPICESolver):
                             coord_set[r_index, c_index, 2]:coord_set[r_index, c_index, 3]]
 
                 # set concentration
-                data = self.spectrum.get_spectrum(to_x_unit='nm')
-                x_data = data[0, :]
-
-                sp = Spectrum(x_data, illumination_value, x_unit='nm')
+                sp = Spectrum(self.illumination_wavelength, illumination_value, x_unit='nm')
 
                 self.solarcell.set_input_spectrum(self.spectrum * sp)
 
