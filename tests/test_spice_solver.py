@@ -318,7 +318,9 @@ class SpiceSolverTest(unittest.TestCase):
 
         # Load the illumination from ray data
         # TODO the file path is temporary
-        file = r"C:\Users\kanhu\OneDrive\Documents\LightTools-tutorial\exporty_rays_binary_1mm.1.ray"
+        file = "private_data/export_rays_binary_1mm.1.ray"
+        if not os.path.exists(file):
+            raise FileNotFoundError("No ray data found in private_data folder")
 
         rd = RayData(file)
 
