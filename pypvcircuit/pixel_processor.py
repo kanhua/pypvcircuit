@@ -37,7 +37,7 @@ class PixelProcessor(object):
 
     def _set_circuit_params(self):
         self.raw_isc = _load_solarcell_param(self.solarcell, 'jsc')
-        self.raw_i01 = _load_solarcell_param(self.solarcell, 'j01')
+        self.raw_i01 = _load_solarcell_param(self.solarcell, 'j01_r')
         self.raw_i02 = _load_solarcell_param(self.solarcell, 'j02')
         raw_rs_top = _load_solarcell_param(self.solarcell, 'rs_top')
         raw_rs_bot = _load_solarcell_param(self.solarcell, 'rs_bot')

@@ -7,6 +7,8 @@ import os
 from skimage.io import imread, imsave
 import matplotlib.pyplot as plt
 import numpy as np
+from pypvcell.fom import voc
+from pypvcell.illumination import load_astm
 
 
 class PixelProcessorTestCase(unittest.TestCase):
@@ -71,7 +73,7 @@ class PixelProcessorTestCase(unittest.TestCase):
         :return:
         """
 
-        sq = SQCell(1.42, 300, 1)
+        sq = SQCell(1.42, 300, 0.01)
 
         nd = NodeReducer()
 
@@ -85,11 +87,40 @@ class PixelProcessorTestCase(unittest.TestCase):
 
         print(v, i)
         plt.plot(v, i, label="pypvcell", alpha=0.5)
-        plt.plot(sps.V, -sps.I, label="networksim", alpha=0.5)
+        plt.plot(sps.V, sps.I, label="networksim", alpha=0.5)
         plt.xlabel("voltage (V)")
         plt.ylabel("current (A)")
         plt.legend()
 
+        y_axis_min = np.min(sps.I) * 1.1
+        y_axim_max = 0
+        plt.ylim([y_axis_min, y_axim_max])
+
+        plt.show()
+
+    def test_varying_rad_eta(self):
+        rad_eta_array = np.logspace(-4, 0, num=10)
+        voc_array = np.empty(rad_eta_array.shape)
+        circuit_voc_array = np.empty(rad_eta_array.shape)
+
+        for idx in range(rad_eta_array.shape[0]):
+            sq = SQCell(1.42, 300, rad_eta_array[idx])
+            sq.set_input_spectrum(load_astm("AM1.5d"))
+            v, i = sq.get_iv(volt=np.linspace(0, 1.3, 250))
+
+            nd = NodeReducer()
+
+            sps = SinglePixelSolver(solarcell=sq, illumination=1, v_start=0,
+                                    v_end=1.1, v_steps=0.01, l_r=1, l_c=1,
+                                    h=self.h, spice_preprocessor=nd)
+
+            voc_array[idx] = voc(v, i)
+            circuit_voc_array[idx] = voc(sps.V, sps.I)
+
+        plt.semilogx(rad_eta_array, voc_array, label="pypvcell", alpha=0.5)
+        plt.semilogx(rad_eta_array, circuit_voc_array, label="networksim", alpha=0.5)
+
+        plt.legend()
         plt.show()
 
 
