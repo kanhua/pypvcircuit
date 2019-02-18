@@ -28,15 +28,14 @@ A brief description of the model is [here](./docs/calculation_principles.md). PD
 Run [```run_demo_suites.sh```](./run_demo_suites.sh) to reproduce the figures on the paper.
 
 
-## Known issues
-
-- Simulation of multi-junction cell may not be very stable.
-This numerical stability is limited by the chosen SPICE backends. At the moment we only support [NGSpice](http://ngspice.sourceforge.net/)
-
-
 ## Installation
 
-Read [this guide](./install.md) for how to install this package.
+Read [this guide](./docs/install.md) for how to install this package.
+
+
+## Basic usage
+
+Check out [network simulation starter.ipynb](network simulation starter.ipynb) for how to use this package.
 
 
 ## Other resources
