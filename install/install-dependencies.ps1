@@ -1,4 +1,5 @@
 $this_path=$PSScriptRoot
+Invoke-Expression "$PSScriptRoot\load-condaenv.ps1"
 $conda_path=$conda_path=Join-Path $env:USERPROFILE "Anaconda3"
 $client = new-object System.Net.WebClient
 
@@ -11,9 +12,9 @@ Write-Output "Extracting Dependencies....."
 Expand-Archive -LiteralPath deps.zip -DestinationPath $this_path -Force
 
 Write-Output "Downloading Pypvcell..."
-Invoke-WebRequest -Uri https://github.com/kanhua/pypvcell/archive/master.zip -OutFile pypvcell.zip
-Expand-Archive -LiteralPath pypvcell.zip -DestinationPath $this_path -Force
 
+Expand-Archive -LiteralPath pypvcell.zip -DestinationPath $this_path -Force
+$client.DownloadFile("https://s3-ap-northeast-1.amazonaws.com/kanhua-share/pypvcell-master.zip", "$this_path\pypvcell.zip")
 pip install --no-index --find-links .\deps pint msgpack
 
 Write-Output "Installing Pypvcell...."

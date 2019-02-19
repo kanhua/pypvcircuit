@@ -74,8 +74,7 @@ class PWExp(object):
 
             sps = SPICESolver(solarcell=input_solar_cells, illumination=self.illumination_mask,
                               metal_contact=self.contacts_mask, rw=pw, cw=pw, v_start=self.vini, v_end=self.vfin,
-                              v_steps=self.vstep,
-                              l_r=l_r, l_c=l_c, h=self.h, spice_preprocessor=nd)
+                              v_steps=self.vstep, l_r=l_r, l_c=l_c, h=self.h, spice_preprocessor=nd)
 
             end_time = timeit.default_timer()
 

@@ -1,7 +1,7 @@
 $this_path=$PSScriptRoot
 Write-Output $this_path
 $conda_path=$conda_path=Join-Path $env:USERPROFILE "Anaconda3"
-Invoke-WebRequest -Uri https://github.com/kanhua/pypvcircuit/archive/master.zip -OutFile pypvcircuit.zip
+Invoke-WebRequest -Uri https://s3-ap-northeast-1.amazonaws.com/kanhua-share/pycircuit-master.zip -OutFile pypvcircuit.zip
 
 Write-Output "Extracting Dependencies....."
 Expand-Archive -LiteralPath pypvcircuit.zip -DestinationPath $this_path -Force

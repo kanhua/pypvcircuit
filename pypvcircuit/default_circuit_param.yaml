@@ -1,6 +1,6 @@
 rs_top: !!float 200
 rs_bot: !!float 200
-r_series: !!float 1e-19
+r_series: !!float 1e-6
 r_shunt: !!float 1e10
 # contact resistance Ohm-m^2
 r_contact: !!float 0

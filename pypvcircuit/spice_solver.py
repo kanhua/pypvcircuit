@@ -38,14 +38,15 @@ class SPICESolver(object):
 
     """
 
-    def __init__(self, solarcell: SolarCell, illumination: np.ndarray, metal_contact: np.ndarray,
-                 rw: int, cw: int, v_start, v_end, v_steps, l_r, l_c, h, spice_preprocessor=None,
+    def __init__(self, solarcell: SolarCell, illumination: np.ndarray, metal_contact: np.ndarray, rw: int, cw: int,
+                 v_start, v_end, v_steps, l_r, l_c, h, spice_preprocessor=None,
                  illumination_spectrum: typing.Optional[Spectrum] = None,
-                 illumination_wavelength: typing.Optional[np.ndarray] = None,
-                 illumination_unit='x'):
+                 illumination_wavelength: typing.Optional[np.ndarray] = None, illumination_unit='x',
+                 lump_series_r=0):
         """
         This function initialize the mesh and runs the network simulation.
 
+        :param lump_series_r:
         :param solarcell: the Pypvcell solar cell class
         :param illumination: a 2D or 3D numpy array
         :param metal_contact: a 2D numpy array that describes the metal contact
@@ -91,6 +92,7 @@ class SPICESolver(object):
         self.I = None
         self.v_junc = None
         self.steps = _get_steps(self.v_start, self.v_end, self.v_steps)
+        self.lump_series_r = lump_series_r
 
         self.spice_preprocessor = spice_preprocessor
 
@@ -157,7 +159,8 @@ class SPICESolver(object):
 
                 # set concentration
                 self.solarcell.set_input_spectrum(illumination_value * self.spectrum)
-                px = PixelProcessor(self.solarcell, self.l_r, self.l_c, h=self.finger_h, gn=self.gn)
+                px = PixelProcessor(self.solarcell, self.l_r, self.l_c, h=self.finger_h,
+                                    gn=self.gn, lump_series_r=self.lump_series_r)
 
                 spice_body += px.node_string(r_index, c_index, sub_image=sub_image)
         return spice_body

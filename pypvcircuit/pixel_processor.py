@@ -1,10 +1,10 @@
 import numpy as np
 from pypvcell.solarcell import SQCell, MJCell, SolarCell
 import yaml
+import os
 
 
 def _load_solarcell_param(solarcell: SolarCell, param_name) -> np.array:
-    import os
     this_dir = os.path.abspath(os.path.dirname(__file__))
     file = open(os.path.join(this_dir, "./default_circuit_param.yaml"), 'r')
 
@@ -26,13 +26,14 @@ def _load_solarcell_param(solarcell: SolarCell, param_name) -> np.array:
 
 class PixelProcessor(object):
 
-    def __init__(self, solarcell: SQCell, lr, lc, h, gn=1):
+    def __init__(self, solarcell: SQCell, lr, lc, h, lump_series_r=0, gn=1):
         self.solarcell = solarcell
         self._cicuit_params = dict()
         self.lr = lr
         self.lc = lc
         self.finger_h = h
         self.gn = gn
+        self.lump_series_r = lump_series_r
         self._set_circuit_params()
 
     def _set_circuit_params(self):
@@ -73,6 +74,8 @@ class PixelProcessor(object):
 
         # TODO threshold of metal value
         self.metal_threshold = 0
+
+        self.lump_series_r = self.lump_series_r / self.area_per_pixel / self.gn
 
     def header_string(self, pw):
 
@@ -131,17 +134,18 @@ class PixelProcessor(object):
 
         node_string = create_node(type, idr=id_r, idc=id_c, l_r=merged_pixel_lr, l_c=merged_pixel_lc,
                                   r_metal_top_r=r_metal_row, r_metal_top_c=r_metal_col, r_contact=agg_contact,
-                                  boundary_r=is_boundary_r, boundary_c=is_boundary_c, **self._cicuit_params)
+                                  boundary_r=is_boundary_r, boundary_c=is_boundary_c,
+                                  lump_series_r=self.lump_series_r, **self._cicuit_params)
 
         return diode_string + node_string
 
 
-def create_node(type, idr, idc, l_r, l_c, isc, rs_top, rs_bot,
-                r_shunt, r_series, r_metal_top_r, r_metal_top_c, r_contact,
-                boundary_r=False, boundary_c=False):
+def create_node(type, idr, idc, l_r, l_c, isc, rs_top, rs_bot, r_shunt, r_series, r_metal_top_r, r_metal_top_c,
+                r_contact, boundary_r=False, boundary_c=False, lump_series_r=0):
     """ Creates a node of the solar cell, meaning all the circuit elements at an XY location in the plane.
     This includes all the diodes, resistances and current sources for all the junctions at that location.
 
+    :param lump_series_r:
     :param type: The type of the node, 'Normal', 'Finger' or 'Bus'
     :param idr: row index, idr-th row
     :param idc: column index, idc-th row
@@ -208,11 +212,13 @@ def create_node(type, idr, idc, l_r, l_c, isc, rs_top, rs_bot,
             rtopLCLY = "RtY{0}to{1} t_{0} t_{1} {2}\n".format(loc, loc_column_neighbor, rs_top[j] * s)
 
         # Now the series resistance with the back of the junction
-        rseriesJ = "Rseries{0}to{1} b_{0} {1} {2}\n".format(loc, locLow, r_series[j])
 
-        # TODO: patch 3
-
-        rseriesJ = "Rseries{0}to{1} b_{0} {1} {2}\n".format(loc, locLow, 0)
+        # TODO temperarily add total series resistance here
+        if j == 0:
+            # rseriesJ = "Rseries{0}to{1} b_{0} {1} {2}\n".format(loc, locLow, r_series[j])
+            rseriesJ = "Rseries{0}to{1} b_{0} {1} {2}\n".format(loc, locLow, lump_series_r)
+        else:
+            rseriesJ = "Rseries{0}to{1} b_{0} {1} {2}\n".format(loc, locLow, 0)
 
         # TODO temporarily disabled r_metal_top_r and r_metal_top_c
         # r_metal_top_r = 0

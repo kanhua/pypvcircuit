@@ -97,10 +97,9 @@ class SpiceSolverTest(unittest.TestCase):
 
         self.gaas_1j.set_input_spectrum(load_astm("AM1.5g"))
 
-        sps = SPICESolver(solarcell=self.gaas_1j, illumination=illumination_mask,
-                          metal_contact=metal_mask, rw=pw, cw=pw, v_start=self.vini, v_end=self.vfin,
-                          v_steps=self.step,
-                          l_r=self.Lx, l_c=self.Ly, h=self.h, spice_preprocessor=nd)
+        sps = SPICESolver(solarcell=self.gaas_1j, illumination=illumination_mask, metal_contact=metal_mask, rw=pw,
+                          cw=pw, v_start=self.vini, v_end=self.vfin, v_steps=self.step, l_r=self.Lx, l_c=self.Ly,
+                          h=self.h, spice_preprocessor=nd)
 
         solver_isc = isc(sps.V, sps.I)
 

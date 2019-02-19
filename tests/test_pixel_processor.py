@@ -54,8 +54,7 @@ class PixelProcessorTestCase(unittest.TestCase):
 
         sps = SPICESolver(solarcell=sq, illumination=self.default_illuminationMask,
                           metal_contact=self.default_contactsMask, rw=2, cw=2, v_start=self.vini, v_end=self.vfin,
-                          v_steps=self.step,
-                          l_r=self.Lx, l_c=self.Ly, h=self.h)
+                          v_steps=self.step, l_r=self.Lx, l_c=self.Ly, h=self.h)
 
         plt.plot(sps.V, -sps.I)
         print(sps.I)
@@ -77,9 +76,8 @@ class PixelProcessorTestCase(unittest.TestCase):
 
         nd = NodeReducer()
 
-        sps = SinglePixelSolver(solarcell=sq, illumination=1, v_start=0,
-                                v_end=1.1, v_steps=0.01, l_r=1, l_c=1,
-                                h=self.h, spice_preprocessor=nd)
+        sps = SinglePixelSolver(solarcell=sq, illumination=1, metal_contact=, rw=, cw=, v_start=0, v_end=1.1,
+                                v_steps=0.01, l_r=1, l_c=1, h=self.h, spice_preprocessor=nd)
 
         print(sq.j01)
 
@@ -110,9 +108,8 @@ class PixelProcessorTestCase(unittest.TestCase):
 
             nd = NodeReducer()
 
-            sps = SinglePixelSolver(solarcell=sq, illumination=1, v_start=0,
-                                    v_end=1.1, v_steps=0.01, l_r=1, l_c=1,
-                                    h=self.h, spice_preprocessor=nd)
+            sps = SinglePixelSolver(solarcell=sq, illumination=1, metal_contact=, rw=, cw=, v_start=0, v_end=1.1,
+                                    v_steps=0.01, l_r=1, l_c=1, h=self.h, spice_preprocessor=nd)
 
             voc_array[idx] = voc(v, i)
             circuit_voc_array[idx] = voc(sps.V, sps.I)
