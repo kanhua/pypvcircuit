@@ -39,7 +39,7 @@ class MyTestCase(unittest.TestCase):
         # cell temperature in Kelvins
         T = 298
 
-        r_range = [1e-7, 1e-6, 3e-6, 5e-6]
+        r_range = np.array([1e-7, 1e-6, 3e-6, 5e-6])
         mask_filepath = './private_data/Mask_profile_20181016.png'
 
         contactsMask = imread(mask_filepath)
@@ -64,14 +64,24 @@ class MyTestCase(unittest.TestCase):
 
         solar_cell_1 = MJCell([ingap_cell, gaas_cell, ge_cell])
 
-        for res in r_range:
+        fill_factor_array = np.empty(len(r_range))
+        for idx, res in enumerate(r_range):
             sps = SPICESolver(solarcell=solar_cell_1, illumination=illuminationMask,
-                              metal_contact=contactsMask, rw=25, cw=25, v_start=vini, v_end=vfin,
-                              v_steps=step, l_r=l_r, l_c=l_c, h=h, spice_preprocessor=nd, lump_series_r=res)
-            plt.plot(sps.V, sps.I)
+                              metal_contact=contactsMask, rw=25, cw=25,
+                              v_start=vini, v_end=vfin,
+                              v_steps=step, l_r=l_r, l_c=l_c, h=h,
+                              spice_preprocessor=nd, lump_series_r=res)
+            # plt.plot(sps.V, sps.I)
             ff_value = ff(sps.V, sps.I)
+
+            fill_factor_array[idx] = ff_value
+
             print("FF:{}".format(ff_value))
-        
+
+        plt.plot(r_range, fill_factor_array)
+        plt.xlabel("resistance")
+        plt.ylabel("fill factors")
+
         plt.show()
 
     def test_concentration(self):
