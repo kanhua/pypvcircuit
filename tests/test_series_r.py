@@ -71,6 +71,7 @@ class MyTestCase(unittest.TestCase):
             plt.plot(sps.V, sps.I)
             ff_value = ff(sps.V, sps.I)
             print("FF:{}".format(ff_value))
+        
         plt.show()
 
     def test_concentration(self):
@@ -123,7 +124,7 @@ class MyTestCase(unittest.TestCase):
         for idx, conc in enumerate(conc_range):
             illumination_mask = np.ones((nx, ny)) * conc
             sps = SPICESolver(solarcell=solar_cell_1, illumination=illumination_mask,
-                              metal_contact=contactsMask, rw=20, cw=20, v_start=vini, v_end=vfin,
+                              metal_contact=contactsMask, rw=10, cw=10, v_start=vini, v_end=vfin,
                               v_steps=step, l_r=l_r, l_c=l_c, h=h, spice_preprocessor=nd, lump_series_r=lump_r)
             ff_value = ff(sps.V, sps.I)
             print("FF:{}".format(ff_value))
@@ -133,7 +134,7 @@ class MyTestCase(unittest.TestCase):
             else:
                 result_vi = np.vstack((result_vi, sps.V, sps.I))
 
-        np.savetxt("concentrated_3j_iv.csv", result_vi.T, delimiter=',')
+        np.savetxt("concentrated_3j_iv_pw10.csv", result_vi.T, delimiter=',')
 
         plt.semilogx(conc_range, ff_value_arr)
         plt.xlabel("concentration")
