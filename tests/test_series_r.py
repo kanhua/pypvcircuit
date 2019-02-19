@@ -95,6 +95,8 @@ class MyTestCase(unittest.TestCase):
         contactsMask = imread(mask_filepath)
         contactsMask = contactsMask[:, :, 0]
         nx, ny = contactsMask.shape
+        contactsMask = contactsMask[:, int(ny / 2):]
+        nx, ny = contactsMask.shape
 
         conc_range = np.array([1, 10, 100, 500, 800])
         lump_r = 1e-6
@@ -115,14 +117,27 @@ class MyTestCase(unittest.TestCase):
 
         solar_cell_1 = MJCell([ingap_cell, gaas_cell, ge_cell])
 
-        for conc in conc_range:
+        ff_value_arr = np.empty(conc_range.shape)
+
+        result_vi = None
+        for idx, conc in enumerate(conc_range):
             illumination_mask = np.ones((nx, ny)) * conc
             sps = SPICESolver(solarcell=solar_cell_1, illumination=illumination_mask,
                               metal_contact=contactsMask, rw=20, cw=20, v_start=vini, v_end=vfin,
                               v_steps=step, l_r=l_r, l_c=l_c, h=h, spice_preprocessor=nd, lump_series_r=lump_r)
-            plt.plot(sps.V, sps.I)
             ff_value = ff(sps.V, sps.I)
             print("FF:{}".format(ff_value))
+            ff_value_arr[idx] = ff_value
+            if result_vi is None:
+                result_vi = np.stack((sps.V, sps.I))
+            else:
+                result_vi = np.vstack((result_vi, sps.V, sps.I))
+
+        np.savetxt("concentrated_3j_iv.csv", result_vi.T, delimiter=',')
+
+        plt.semilogx(conc_range, ff_value_arr)
+        plt.xlabel("concentration")
+        plt.ylabel("FF")
         plt.show()
 
 
