@@ -90,7 +90,6 @@ class MyTestCase(unittest.TestCase):
         # cell temperature in Kelvins
         T = 298
 
-        r_range = [1e-7, 1e-6, 3e-6, 5e-6]
         mask_filepath = './private_data/Mask_profile_20181016.png'
 
         contactsMask = imread(mask_filepath)
@@ -119,7 +118,7 @@ class MyTestCase(unittest.TestCase):
         for conc in conc_range:
             illumination_mask = np.ones((nx, ny)) * conc
             sps = SPICESolver(solarcell=solar_cell_1, illumination=illumination_mask,
-                              metal_contact=contactsMask, rw=25, cw=25, v_start=vini, v_end=vfin,
+                              metal_contact=contactsMask, rw=20, cw=20, v_start=vini, v_end=vfin,
                               v_steps=step, l_r=l_r, l_c=l_c, h=h, spice_preprocessor=nd, lump_series_r=lump_r)
             plt.plot(sps.V, sps.I)
             ff_value = ff(sps.V, sps.I)
