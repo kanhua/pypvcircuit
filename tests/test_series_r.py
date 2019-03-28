@@ -1,3 +1,8 @@
+"""
+This scripts tests adding series resistance into the cell.
+
+"""
+
 import unittest
 import timeit
 import os
@@ -21,7 +26,7 @@ from pypvcircuit.import_tool import RayData
 import yaml
 
 
-class MyTestCase(unittest.TestCase):
+class SeriesRTestCase(unittest.TestCase):
     def test_series_r(self):
         # Size of the pixels (m)
         l_r = 1e-6

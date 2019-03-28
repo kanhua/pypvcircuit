@@ -1,0 +1,7 @@
+[External programs]
+spice = /Applications/ngspice/bin/ngspice
+
+[Path_config]
+output_path = /Users/kanhua/OneDrive/pypvcircuit_data
+mirror_output_path= /Users/kanhua/Dropbox/DDocuments/2018-equivalent-circuit/figs/
+
