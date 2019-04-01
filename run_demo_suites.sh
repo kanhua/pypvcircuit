@@ -1,7 +1,7 @@
 #!/bin/bash
 #this script runs through the settings
 export PYTHONPATH=$PYTHONPATH:"/code"
-python setup_spice.py ngspice /results
+python setup_spice.py ngspice /results /results
 
 echo "running test cases"
 cd tests

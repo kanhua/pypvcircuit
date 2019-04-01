@@ -312,21 +312,3 @@ class PaperFigure(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
-
-# baseline_3j_case()
-
-# highres_case()
-
-# highres_3j()
-
-# highres_3j_batch()
-
-# highres_triang_3j_batch()
-
-# circle_grid_3j()
-
-# highres_triang_3j_larger_batch()
-
-# highres_triang_3j_200x_batch()
-# highres_triang_3j_500x_10mm_batch()

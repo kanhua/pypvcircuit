@@ -2,6 +2,7 @@
 spice = /Applications/ngspice/bin/ngspice
 
 [Path_config]
+spice_path = /Users/kanhua/Dropbox/Programming/solar-cell-circuit/tmp_out
 output_path = /Users/kanhua/OneDrive/pypvcircuit_data
 mirror_output_path= /Users/kanhua/Dropbox/DDocuments/2018-equivalent-circuit/figs/
 

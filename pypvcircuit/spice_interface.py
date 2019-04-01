@@ -35,8 +35,9 @@ def solve_circuit(spice_file_contents, engine=SpiceConfig.engine, raw=True, post
     """
 
     SpiceConfig.engine = engine
+    spice_path = user_config_data.get('Path_config', 'spice_path')
 
-    with open("spice_in_raw.txt", "w") as f:
+    with open(os.path.join(spice_path, "spice_in_raw.txt"), "w") as f:
         f.write(spice_file_contents)
 
     # post process the input script if necessary
@@ -51,7 +52,7 @@ def solve_circuit(spice_file_contents, engine=SpiceConfig.engine, raw=True, post
         with open(spice_file_path, "w") as f:
             f.write(spice_file_contents)
 
-        with open("spice_in.txt", "w") as f:
+        with open(os.path.join(spice_path, "spice_in.txt"), "w") as f:
             f.write(spice_file_contents)
 
         this_process = subprocess.Popen([SpiceConfig.engine, '-b', spice_file_path, '-o', spice_output_path])
@@ -61,7 +62,7 @@ def solve_circuit(spice_file_contents, engine=SpiceConfig.engine, raw=True, post
         with open(spice_output_path, "r") as f:
             raw_results = f.read()
 
-        with open("spice_out.txt", "w") as f:
+        with open(os.path.join(spice_path, "spice_out.txt"), "w") as f:
             f.write(raw_results)
 
         if raw:
