@@ -2,3 +2,4 @@
 spice = /Applications/ngspice/bin/ngspice
 [Path_config]
 output_path="/path/to/output_data/"
+spice_path = /Users/kanhua/Dropbox/Programming/solar-cell-circuit/tmp_out
