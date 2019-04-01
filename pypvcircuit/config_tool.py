@@ -77,3 +77,13 @@ def set_location_of_output(location):
 
     user_config_data['Path_config']['output_path'] = location
     save_user_config(user_config_data)
+
+def set_location_of_spice_output(location):
+    if not os.path.exists(user_config_file):
+        generate_default_setting()
+
+    user_config_data = ConfigParser()
+    user_config_data.read(user_config_file)
+
+    user_config_data['Path_config']['spice_path'] = location
+    save_user_config(user_config_data)
