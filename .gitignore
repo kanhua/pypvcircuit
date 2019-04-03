@@ -22,6 +22,7 @@ spice_in_raw.txt
 shared/
 data/
 figs/
+pypvcircuit/user_config.txt
 
 tests/test_output_data/
 
