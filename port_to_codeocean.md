@@ -4,6 +4,11 @@
 
 2. Delete ```./experiment``` folder.
 
+3. In the jupyter notebook starter file, add the following setup setting:
+
+```bash
+python setup_spice.py ngspice /results /results
+```
 
 3. Post-installation scripts
 ```bash
