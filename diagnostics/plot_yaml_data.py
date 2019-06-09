@@ -15,6 +15,7 @@ import matplotlib as mpl
 
 import argparse
 
+figure_type = "pdf"
 parser = argparse.ArgumentParser()
 parser.add_argument("setfile", help="A yaml file that does the basic setting")
 args = parser.parse_args()
@@ -79,7 +80,7 @@ for ts in test_set:
     plot_iv(ax_iv, iv_data_path.format(full_filename), data['pw'])
 
     fig_iv.tight_layout()
-    fig_iv.savefig(os.path.join(data_output_path, "{}_iv.png".format(full_filename)),
+    fig_iv.savefig(os.path.join(data_output_path, "{}_iv.{}".format(full_filename, figure_type)),
                    dpi=300)
 
     # plot voltage map
@@ -101,10 +102,11 @@ for ts in test_set:
     voltage_map_ax = voltage_map_ax.ravel()
     draw_voltage_map(output_data_path, data['pw'], voltage_map_ax, full_filename)
     voltage_map_fig.tight_layout()
-    voltage_map_fig.savefig(os.path.join(output_data_path, "{}_equiv_map_images.png".format(full_filename)), dpi=300)
+    voltage_map_fig.savefig(os.path.join(output_data_path, "{}_equiv_map_images.{}".format(full_filename, figure_type)),
+                            dpi=300)
 
 fig.tight_layout()
-fom_filename = "{}_fom.png".format(setting['file_prefix'])
+fom_filename = "{}_fom.{}".format(setting['file_prefix'], figure_type)
 fig.savefig(os.path.join(output_data_path, fom_filename), dpi=300)
 
 if "mirror_output_path" in user_config_data['Path_config'].keys():
