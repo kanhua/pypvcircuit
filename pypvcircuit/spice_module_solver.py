@@ -9,9 +9,10 @@ from pypvcell.spectrum import Spectrum
 from .parse_spice_output import parse_output
 from .pixel_processor import PixelProcessor, create_header
 from .spice_interface import solve_circuit
+from .spice_solver import SPICESolver
 
 
-class SingleModuleStringSolver(object):
+class SingleModuleStringSolver(SPICESolver):
 
     def __init__(self, solarcell: SolarCell, illumination: float, v_start,
                  v_end, v_steps, l_r, l_c, cell_number, spice_preprocessor=None):
@@ -49,8 +50,12 @@ class SingleModuleStringSolver(object):
 
     def _send_command(self):
 
+        postprocessor = None
+        if self.spice_preprocessor is not None:
+            postprocessor = self.spice_preprocessor.process_spice_input
+
         raw_results = solve_circuit(spice_file_contents=self.spice_input,
-                                    postprocess_input=None)
+                                    postprocess_input=postprocessor)
 
         return raw_results
 
@@ -69,7 +74,7 @@ class SingleModuleStringSolver(object):
 
         isc = self.illumination * sample_isc * self.l_c * self.l_r
 
-        return 1 / isc / 1000
+        return 1 / isc / 10000
 
     def _generate_network(self):
 
@@ -111,15 +116,70 @@ class SingleModuleStringSolver(object):
 
         self.V, self.I = results['dep#branch']
 
-    def _renormalize_output(self):
-
-        # self.v_junc=self.v_junc*gn
-        self.I = -self.I / self.gn
-
     def _generate_exec(self):
 
         # We prepare the SPICE execution
         return ".PRINT DC i(vdep)\n.DC vdep {0} {1} {2}\n".format(self.v_start, self.v_end, self.v_steps)
+
+
+class MultiStringModuleSolver(SingleModuleStringSolver):
+
+    def __init__(self, solarcell: SolarCell, illumination: float, v_start,
+                 v_end, v_steps, l_r, l_c, cell_number, string_number, spice_preprocessor=None):
+        self.solarcell = solarcell
+
+        self.l_r = l_r
+        self.l_c = l_c
+        self.illumination = illumination
+
+        self.v_start = v_start
+        self.v_end = v_end
+        self.v_steps = v_steps
+
+        self.cell_number = cell_number
+        self.string_number = string_number
+
+        self.V = None
+        self.I = None
+
+        self.spice_preprocessor = spice_preprocessor
+
+        self.gn = self._find_gn()
+
+    def _generate_network(self):
+
+        self.solarcell.set_input_spectrum(load_astm("AM1.5g") * self.illumination)
+
+        spj = ""
+        node_count = 0
+        junction_count = 0
+
+        for sn in range(self.string_number):
+
+            for cn in range(self.cell_number):
+                for jn in range(len(self.solarcell.subcell)):
+                    spj += spice_junction(junction_count, node_count,
+                                          self.solarcell.subcell[jn].jsc * self.l_c * self.l_r * self.gn,
+                                          self.solarcell.subcell[jn].j01 * self.l_c * self.l_r * self.gn,
+                                          self.solarcell.subcell[jn].j02,
+                                          n1=1, n2=2, Eg=self.solarcell.subcell[jn].eg, rsh=1e14)
+                    junction_count += 1
+                    node_count += 1
+
+            junction_count += 1
+            node_count += 1
+            # connect the nodes between strings
+            resistor_str1 = ""
+            resistor_str2 = ""
+            if sn >= 1:
+                resistor_str1 = 'r{0} {1} {2} {3}\n'.format("sn_head_{}".format(sn), 0, node_count - cn - 2, 1e-8)
+                resistor_str2 = 'r{0} {1} {2} {3}\n'.format("sn_tail_{}".format(sn), cn + 1, node_count - 1, 1e-8)
+
+            spj += (resistor_str1 + resistor_str2)
+
+        spj += "vdep " + str(junction_count) + " 0\n"
+
+        return spj
 
 
 def spice_junction(jc, nc, isc, j01, j02, n1, n2, Eg, rsh):
