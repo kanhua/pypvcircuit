@@ -69,7 +69,7 @@ class SingleModuleStringSolver(object):
 
         isc = self.illumination * sample_isc * self.l_c * self.l_r
 
-        return 1 / isc * 100
+        return 1 / isc / 1000
 
     def _generate_network(self):
 
