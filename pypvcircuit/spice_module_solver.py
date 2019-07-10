@@ -125,7 +125,7 @@ class SingleModuleStringSolver(SPICESolver):
 class MultiStringModuleSolver(SingleModuleStringSolver):
 
     def __init__(self, solarcell: SolarCell, illumination: float, v_start,
-                 v_end, v_steps, l_r, l_c, cell_number, string_number, spice_preprocessor=None):
+                 v_end, v_steps, l_r, l_c, cell_number, string_number, isc_stdev=0, spice_preprocessor=None):
         self.solarcell = solarcell
 
         self.l_r = l_r
@@ -141,6 +141,8 @@ class MultiStringModuleSolver(SingleModuleStringSolver):
 
         self.V = None
         self.I = None
+
+        self.isc_stdev = isc_stdev
 
         self.spice_preprocessor = spice_preprocessor
 
@@ -159,12 +161,19 @@ class MultiStringModuleSolver(SingleModuleStringSolver):
 
         junction_number = len(self.solarcell.subcell)
 
+        mu, sigma = 0, self.isc_stdev  # mean and standard deviation
+        s = np.random.normal(mu, sigma, self.string_number * self.cell_number)
+
+
         for sn in range(self.string_number):
 
             for cn in range(self.cell_number):
                 for jn in range(len(self.solarcell.subcell)):
+                    baseline_isc = self.solarcell.subcell[jn].jsc * self.l_c * self.l_r * self.gn
+                    isc = baseline_isc * (1 + s[sn * self.cell_number + cn])
+
                     spj += spice_junction(junction_count, node_count,
-                                          self.solarcell.subcell[jn].jsc * self.l_c * self.l_r * self.gn,
+                                          isc,
                                           self.solarcell.subcell[jn].j01 * self.l_c * self.l_r * self.gn,
                                           self.solarcell.subcell[jn].j02,
                                           n1=1, n2=2, Eg=self.solarcell.subcell[jn].eg, rsh=1e14)
