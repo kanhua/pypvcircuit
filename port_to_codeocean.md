@@ -18,6 +18,11 @@ export PYTHONPATH=$PYTHONPATH:"/code"
 python setup_spice.py ngspice /results /results
 ```
 
+4. In ```convert_nb.sh```, change ```output_folder``` to
+```bash
+output_folder="/results/"
+
+```
 
 ```bash
 #!/usr/bin/env bash
