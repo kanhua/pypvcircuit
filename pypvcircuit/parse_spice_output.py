@@ -27,7 +27,7 @@ def parse_output(raw_results: str):
         if not found_row_num:
             matched_obj = re.match(find_data_row_pat, line)
             if matched_obj:
-                print("number of data:{}".format(matched_obj[1]))
+                # print("number of data:{}".format(matched_obj[1]))
 
                 data_num = int(matched_obj[1])
                 found_row_num = True

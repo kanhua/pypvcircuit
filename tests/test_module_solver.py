@@ -110,7 +110,7 @@ class MyTestCase(unittest.TestCase):
         mj_cell = MJCell([self.ingap_1j, self.gaas_1j, self.ge_1j])
 
         nd = NodeReducer()
-        for i in range(2, 7):
+        for i in range(2, 45):
             sm = MultiStringModuleSolver(solarcell=mj_cell, illumination=500,
                                          v_start=0, v_end=3.5 * i, v_steps=0.01, l_r=1e-3, l_c=1e-3,
                                          cell_number=i, string_number=i, isc_stdev=0.1, spice_preprocessor=None)
@@ -159,10 +159,46 @@ class MyTestCase(unittest.TestCase):
         plt.plot(test_stdev, pm_store.mean(axis=1))
         plt.show()
 
+    def test_maxp_versus_cell_num(self):
 
+        self.gaas_1j = SQCell(1.42, 300, 1)
+        self.ingap_1j = SQCell(1.87, 300, 1)
+        self.ge_1j = SQCell(0.7, 300, 1)
 
+        mj_cell = MJCell([self.ingap_1j, self.gaas_1j, self.ge_1j])
 
+        nd = NodeReducer()
 
+        stdev = 0.1
+
+        cell_num_array = np.array([2, 3, 4, 5, 6, 7, 8, 9])
+        trial = 10
+        pm_store = np.empty((cell_num_array.shape[0], trial))
+        isc_store = np.empty((cell_num_array.shape[0], trial))
+
+        for std_index, cell_num in enumerate(cell_num_array):
+
+            for tt in range(trial):
+                sm = MultiStringModuleSolver(solarcell=mj_cell, illumination=500,
+                                             v_start=0, v_end=3.5 * cell_num, v_steps=0.01, l_r=1e-3, l_c=1e-3,
+                                             cell_number=cell_num, string_number=cell_num, isc_stdev=stdev,
+                                             spice_preprocessor=None)
+
+                # print(sm._generate_network())
+
+                sm._solve_circuit()
+                print(fom.voc(sm.V, sm.I))
+                calc_isc = fom.isc(sm.V, sm.I)
+                max_p = fom.max_power(sm.V, sm.I) / (cell_num ** 2)
+
+                pm_store[std_index, tt] = max_p
+                isc_store[std_index, tt] = calc_isc
+
+        print(pm_store)
+        plt.plot(cell_num_array, pm_store.mean(axis=1))
+        plt.plot(cell_num_array, pm_store.max(axis=1))
+        plt.plot(cell_num_array, pm_store.min(axis=1))
+        plt.show()
 
 
 if __name__ == '__main__':
