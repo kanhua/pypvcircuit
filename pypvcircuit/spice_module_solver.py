@@ -151,8 +151,11 @@ class MultiStringModuleSolver(SingleModuleStringSolver):
         self.solarcell.set_input_spectrum(load_astm("AM1.5g") * self.illumination)
 
         spj = ""
-        node_count = 0
-        junction_count = 0
+
+        start_node_count = 0
+
+        node_count = start_node_count
+        junction_count = start_node_count
 
         for sn in range(self.string_number):
 
@@ -172,12 +175,14 @@ class MultiStringModuleSolver(SingleModuleStringSolver):
             resistor_str1 = ""
             resistor_str2 = ""
             if sn >= 1:
-                resistor_str1 = 'r{0} {1} {2} {3}\n'.format("sn_head_{}".format(sn), 0, node_count - cn - 2, 1e-8)
+                resistor_str1 = 'r{0} {1} {2} {3}\n'.format("sn_head_{}".format(sn), start_node_count,
+                                                            node_count - cn - 2, 1e-8)
                 resistor_str2 = 'r{0} {1} {2} {3}\n'.format("sn_tail_{}".format(sn), cn + 1, node_count - 1, 1e-8)
 
             spj += (resistor_str1 + resistor_str2)
 
-        spj += "vdep " + str(junction_count) + " 0\n"
+        vsource = "vdep {0} {1} \n".format(junction_count - 1, start_node_count)
+        spj += vsource
 
         return spj
 

@@ -156,6 +156,11 @@ class NodeReducer(object):
 
             if is_device(c):
                 dev_cmd = parse_spice_command(c)
+
+                if len(dev_cmd.keys()) == 0:
+                    print("Error of parsing {}".format(c))
+
+
                 u = dev_cmd['p_node']
                 v = dev_cmd['n_node']
                 if u in shorted_node_g:

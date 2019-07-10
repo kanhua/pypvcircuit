@@ -64,10 +64,20 @@ class MyTestCase(unittest.TestCase):
 
         nd = NodeReducer()
         sm = MultiStringModuleSolver(solarcell=mj_cell, illumination=1,
-                                     v_start=0, v_end=5, v_steps=0.01, l_r=1e-3, l_c=1e-3,
-                                     cell_number=2, string_number=3, spice_preprocessor=nd)
+                                     v_start=0, v_end=9, v_steps=0.01, l_r=1e-3, l_c=1e-3,
+                                     cell_number=5, string_number=5, spice_preprocessor=None)
 
         print(sm._generate_network())
+
+        sm._solve_circuit()
+
+        plt.plot(sm.V, sm.I)
+
+        print(fom.voc(sm.V, sm.I))
+        print(fom.isc(sm.V, sm.I))
+
+        plt.show()
+
 
 if __name__ == '__main__':
     unittest.main()
