@@ -55,7 +55,7 @@ class MyTestCase(unittest.TestCase):
 
         plt.show()
 
-    def test_mj_multi_string_module(self):
+    def test_sj_multi_string_module(self):
         self.gaas_1j = SQCell(1.42, 300, 1)
         self.ingap_1j = SQCell(1.87, 300, 1)
         self.ge_1j = SQCell(0.7, 300, 1)
@@ -77,6 +77,31 @@ class MyTestCase(unittest.TestCase):
         print(fom.isc(sm.V, sm.I))
 
         plt.show()
+
+    def test_mj_multi_string_module(self):
+        self.gaas_1j = SQCell(1.42, 300, 1)
+        self.ingap_1j = SQCell(1.87, 300, 1)
+        self.ge_1j = SQCell(0.7, 300, 1)
+
+        mj_cell = MJCell([self.ingap_1j, self.gaas_1j])
+
+        nd = NodeReducer()
+        sm = MultiStringModuleSolver(solarcell=mj_cell, illumination=500,
+                                     v_start=0, v_end=16, v_steps=0.01, l_r=1e-3, l_c=1e-3,
+                                     cell_number=5, string_number=5, spice_preprocessor=None)
+
+        print(sm._generate_network())
+
+        sm._solve_circuit()
+
+        plt.plot(sm.V, sm.I)
+
+        print(fom.voc(sm.V, sm.I))
+        print(fom.isc(sm.V, sm.I))
+
+        plt.show()
+
+
 
 
 if __name__ == '__main__':

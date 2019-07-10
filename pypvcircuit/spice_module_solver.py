@@ -157,6 +157,8 @@ class MultiStringModuleSolver(SingleModuleStringSolver):
         node_count = start_node_count
         junction_count = start_node_count
 
+        junction_number = len(self.solarcell.subcell)
+
         for sn in range(self.string_number):
 
             for cn in range(self.cell_number):
@@ -176,8 +178,10 @@ class MultiStringModuleSolver(SingleModuleStringSolver):
             resistor_str2 = ""
             if sn >= 1:
                 resistor_str1 = 'r{0} {1} {2} {3}\n'.format("sn_head_{}".format(sn), start_node_count,
-                                                            node_count - cn - 2, 1e-8)
-                resistor_str2 = 'r{0} {1} {2} {3}\n'.format("sn_tail_{}".format(sn), cn + 1, node_count - 1, 1e-8)
+                                                            node_count - junction_number * self.cell_number - 1, 1e-9)
+                resistor_str2 = 'r{0} {1} {2} {3}\n'.format("sn_tail_{}".format(sn),
+                                                            start_node_count + junction_number * self.cell_number,
+                                                            node_count - 1, 1e-9)
 
             spj += (resistor_str1 + resistor_str2)
 
