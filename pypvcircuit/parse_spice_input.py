@@ -7,11 +7,12 @@ def parse_spice_command(command: str):
 
     r_pat = '(?P<name>[Rr]\w+)\s+(?P<pnode>\w+)\s+(?P<nnode>\w+)\s+(?P<value>[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)'
 
-    i_pat = '(?P<name>[Ii]\w+)\s+(?P<pnode>\w+)\s+(?P<nnode>\w+)\s+(?P<value>[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)'
+    i_pat = '(?P<name>[Ii]\w+)\s+(?P<pnode>\w+)\s+(?P<nnode>\w+)\s+(?P<opmode>DC|AC|dc|ac|\s*)\s+(?P<value>[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)'
 
-    v_pat = '(?P<name>[Vv]\w+)\s+(?P<pnode>\w+)\s+(?P<nnode>\w+)\s+DC\s+(?P<value>[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)'
+    v_pat = '(?P<name>[Vv]\w+)\s+(?P<pnode>\w+)\s+(?P<nnode>\w+)\s+(?P<opmode>DC\s+|\s*)(?P<value>[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)'
+    # not very clean way of matching <opmode>. This requires using str.strip() when retrieving <opmode>
 
-    d_pat = '(?P<name>[Dd]\w+)\s+(?P<pnode>\w+)\s+(?P<nnode>\w+)\s+(?P<value>\w+)'
+    d_pat = '(?P<name>[Dd][\w-]+)\s+(?P<pnode>\w+)\s+(?P<nnode>\w+)\s+(?P<value>[\w-]+)\s+(?P<opmode>OFF|\s*)'
 
     pattern_base = dict()
 
@@ -126,7 +127,7 @@ class NodeReducer(object):
 
         reprocessed_output = ""
 
-        # Read the input and construct the netwrok graph
+        # Read the input and construct the network graph
         for c in commands:
             if len(c) == 0:
                 continue
@@ -159,7 +160,6 @@ class NodeReducer(object):
 
                 if len(dev_cmd.keys()) == 0:
                     print("Error of parsing {}".format(c))
-
 
                 u = dev_cmd['p_node']
                 v = dev_cmd['n_node']

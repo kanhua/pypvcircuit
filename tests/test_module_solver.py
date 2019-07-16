@@ -66,9 +66,9 @@ class MyTestCase(unittest.TestCase):
         nd = NodeReducer()
         sm = MultiStringModuleSolver(solarcell=mj_cell, illumination=1,
                                      v_start=0, v_end=9, v_steps=0.01, l_r=1e-3, l_c=1e-3,
-                                     cell_number=5, string_number=5, spice_preprocessor=None)
+                                     cell_number=5, string_number=5, spice_preprocessor=nd)
 
-        print(sm._generate_network())
+        # print(sm._generate_network())
 
         sm._solve_circuit()
 
@@ -89,7 +89,7 @@ class MyTestCase(unittest.TestCase):
         nd = NodeReducer()
         sm = MultiStringModuleSolver(solarcell=mj_cell, illumination=500,
                                      v_start=0, v_end=16, v_steps=0.01, l_r=1e-3, l_c=1e-3,
-                                     cell_number=5, string_number=5, spice_preprocessor=None)
+                                     cell_number=5, string_number=5, spice_preprocessor=nd)
 
         print(sm._generate_network())
 

@@ -74,7 +74,7 @@ class SingleModuleStringSolver(SPICESolver):
 
         isc = self.illumination * sample_isc * self.l_c * self.l_r
 
-        return 1 / isc / 10000
+        return 1 / isc / 1000
 
     def _generate_network(self):
 
@@ -150,6 +150,8 @@ class MultiStringModuleSolver(SingleModuleStringSolver):
 
     def _generate_network(self):
 
+        resistor_value = 1e-9
+        # resistor_value=0
         self.solarcell.set_input_spectrum(load_astm("AM1.5g") * self.illumination)
 
         spj = ""
@@ -187,14 +189,15 @@ class MultiStringModuleSolver(SingleModuleStringSolver):
             resistor_str2 = ""
             if sn >= 1:
                 resistor_str1 = 'r{0} {1} {2} {3}\n'.format("sn_head_{}".format(sn), start_node_count,
-                                                            node_count - junction_number * self.cell_number - 1, 1e-9)
+                                                            node_count - junction_number * self.cell_number - 1,
+                                                            resistor_value)
                 resistor_str2 = 'r{0} {1} {2} {3}\n'.format("sn_tail_{}".format(sn),
                                                             start_node_count + junction_number * self.cell_number,
-                                                            node_count - 1, 1e-9)
+                                                            node_count - 1, resistor_value)
 
             spj += (resistor_str1 + resistor_str2)
 
-        vsource = "vdep {0} {1} \n".format(junction_count - 1, start_node_count)
+        vsource = "vdep {0} {1}  0\n".format(junction_count - 1, start_node_count)
         spj += vsource
 
         return spj
