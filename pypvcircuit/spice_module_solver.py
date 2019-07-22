@@ -74,7 +74,7 @@ class SingleModuleStringSolver(SPICESolver):
 
         isc = self.illumination * sample_isc * self.l_c * self.l_r
 
-        return 1 / isc / 1000
+        return 1 / isc / 10
 
     def _generate_network(self):
 
@@ -163,16 +163,19 @@ class MultiStringModuleSolver(SingleModuleStringSolver):
 
         junction_number = len(self.solarcell.subcell)
 
-        mu, sigma = 0, self.isc_stdev  # mean and standard deviation
-        s = np.random.normal(mu, sigma, self.string_number * self.cell_number)
-
+        if type(self.isc_stdev) == float:
+            mu, sigma = 0, self.isc_stdev  # mean and standard deviation
+            s = 1 + np.random.normal(mu, sigma, self.string_number * self.cell_number)
+        else:
+            s = self.isc_stdev
+            assert len(s) == (self.string_number * self.cell_number)
 
         for sn in range(self.string_number):
 
             for cn in range(self.cell_number):
                 for jn in range(len(self.solarcell.subcell)):
                     baseline_isc = self.solarcell.subcell[jn].jsc * self.l_c * self.l_r * self.gn
-                    isc = baseline_isc * (1 + s[sn * self.cell_number + cn])
+                    isc = baseline_isc * (s[sn * self.cell_number + cn])
 
                     spj += spice_junction(junction_count, node_count,
                                           isc,
@@ -237,3 +240,31 @@ def spice_junction(jc, nc, isc, j01, j02, n1, n2, Eg, rsh):
     junction = isource + d1 + d1deff + d2 + d2deff + rshunt
 
     return junction
+
+
+def sensitivity_fun(alignment_err, acceptance_angle):
+    first_term = 1 - 0.1 * np.power(np.abs(alignment_err), 2) / acceptance_angle
+
+    return np.maximum(0, first_term)
+
+
+def corrected_isc(isc_0, delta_l0, delta_l1, tracker_offset, acceptance_angle):
+    delta_l = np.sqrt(np.power(delta_l0, 2) + np.power(delta_l1, 2))
+    isc = isc_0 * sensitivity_fun(delta_l + tracker_offset, acceptance_angle)
+    return isc
+
+
+class ModuleErr(object):
+    def __init__(self, assembling_upper_limit, assembling_lower_limit,
+                 tracker_error_offset, N, acceptance_angle):
+        self.delta_l0 = ((assembling_upper_limit - assembling_lower_limit) / 2) * np.random.randn(N) + 0
+        self.delta_l1 = ((assembling_upper_limit - assembling_lower_limit) / 2) * np.random.randn(N) + 0
+
+        self.tracker_offset = tracker_error_offset * np.random.random(N) + 0
+
+        self.acceptance_angle = acceptance_angle
+
+    def get_isc(self, isc_0):
+        cisc = corrected_isc(isc_0, self.delta_l0, self.delta_l1, self.tracker_offset, self.acceptance_angle)
+
+        return cisc
