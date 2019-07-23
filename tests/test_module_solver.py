@@ -1,4 +1,5 @@
 import unittest
+import os
 from pypvcell.solarcell import SQCell, MJCell
 
 from pypvcircuit.spice_module_solver import SingleModuleStringSolver, MultiStringModuleSolver
@@ -33,6 +34,40 @@ class MyTestCase(unittest.TestCase):
         print(fom.isc(sm.V, sm.I))
 
         plt.show()
+
+    def test_concentration_robustness(self):
+        """
+        Test if the normalization factor gn can handle various concentrations
+
+        :return:
+        """
+
+        self.gaas_1j = SQCell(1.42, 300, 1)
+        self.ingap_1j = SQCell(1.87, 300, 1)
+        self.ge_1j = SQCell(0.7, 300, 1)
+
+        mj_cell = MJCell([self.ingap_1j, self.gaas_1j])
+
+        for ill in np.logspace(1, 3, 10):
+            print("testing concentration {:.2f}".format(ill))
+            sm = SingleModuleStringSolver(solarcell=mj_cell, illumination=ill,
+                                          v_start=-2, v_end=25 * 3, v_steps=0.1, l_r=1e-3, l_c=1e-3,
+                                          cell_number=25, spice_preprocessor=None)
+
+            # print(sm._generate_network())
+
+            sm._solve_circuit()
+
+            plt.plot(sm.V, sm.I)
+            # plt.ylim(top=0)
+            plt.savefig(
+                os.path.join(r"C:\Users\E284652\Documents\repos\pypvcircuit_output", "conc_{:.2f}.png".format(ill)))
+            plt.close()
+
+            print(fom.voc(sm.V, sm.I))
+            print(fom.isc(sm.V, sm.I))
+            print(fom.ff(sm.V, sm.I))
+
 
     def test_1j_module_string(self):
         self.gaas_1j = SQCell(1.42, 300, 1)

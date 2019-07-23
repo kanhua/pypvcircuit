@@ -74,6 +74,7 @@ class SingleModuleStringSolver(SPICESolver):
 
         isc = self.illumination * sample_isc * self.l_c * self.l_r
 
+        # return isc/1e-6/self.illumination/3
         return 1 / isc / 10
 
     def _generate_network(self):
@@ -242,29 +243,31 @@ def spice_junction(jc, nc, isc, j01, j02, n1, n2, Eg, rsh):
     return junction
 
 
-def sensitivity_fun(alignment_err, acceptance_angle):
-    first_term = 1 - 0.1 * np.power(np.abs(alignment_err), 2) / acceptance_angle
+def sensitivity_fun(alignment_err, acceptance_angle, order=2):
+    first_term = 1 - 0.1 * np.power(np.abs(alignment_err), order) / acceptance_angle
 
     return np.maximum(0, first_term)
 
 
-def corrected_isc(isc_0, delta_l0, delta_l1, tracker_offset, acceptance_angle):
+def corrected_isc(isc_0, delta_l0, delta_l1, tracker_offset, acceptance_angle, acceptance_angle_order):
     delta_l = np.sqrt(np.power(delta_l0, 2) + np.power(delta_l1, 2))
-    isc = isc_0 * sensitivity_fun(delta_l + tracker_offset, acceptance_angle)
+    isc = np.sqrt(isc_0 * sensitivity_fun(delta_l + tracker_offset, acceptance_angle, acceptance_angle_order))
     return isc
 
 
 class ModuleErr(object):
     def __init__(self, assembling_upper_limit, assembling_lower_limit,
-                 tracker_error_offset, N, acceptance_angle):
+                 tracker_error_offset, N, acceptance_angle, acceptance_angle_order):
         self.delta_l0 = ((assembling_upper_limit - assembling_lower_limit) / 2) * np.random.randn(N) + 0
         self.delta_l1 = ((assembling_upper_limit - assembling_lower_limit) / 2) * np.random.randn(N) + 0
 
         self.tracker_offset = tracker_error_offset * np.random.random(N) + 0
 
         self.acceptance_angle = acceptance_angle
+        self.acceptance_angle_order = acceptance_angle_order
 
     def get_isc(self, isc_0):
-        cisc = corrected_isc(isc_0, self.delta_l0, self.delta_l1, self.tracker_offset, self.acceptance_angle)
+        cisc = corrected_isc(isc_0, self.delta_l0, self.delta_l1, self.tracker_offset, self.acceptance_angle,
+                             self.acceptance_angle_order)
 
         return cisc
