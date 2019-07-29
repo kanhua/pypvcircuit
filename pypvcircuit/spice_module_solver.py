@@ -75,7 +75,7 @@ class SingleModuleStringSolver(SPICESolver):
         isc = self.illumination * sample_isc * self.l_c * self.l_r
 
         # return isc/1e-6/self.illumination/3
-        return 1 / isc / 10
+        return 1 / isc / (5000 / self.illumination)
 
     def _generate_network(self):
 

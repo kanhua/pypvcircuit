@@ -50,9 +50,9 @@ class MyTestCase(unittest.TestCase):
 
         for ill in np.logspace(1, 3, 10):
             print("testing concentration {:.2f}".format(ill))
-            sm = SingleModuleStringSolver(solarcell=mj_cell, illumination=ill,
-                                          v_start=-2, v_end=25 * 3, v_steps=0.1, l_r=1e-3, l_c=1e-3,
-                                          cell_number=25, spice_preprocessor=None)
+            sm = MultiStringModuleSolver(solarcell=mj_cell, illumination=ill,
+                                         v_start=-2, v_end=25 * 3, v_steps=0.1, l_r=1e-3, l_c=1e-3,
+                                         cell_number=25, string_number=5, isc_stdev=0.01, spice_preprocessor=None)
 
             # print(sm._generate_network())
 
