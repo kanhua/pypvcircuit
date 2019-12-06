@@ -251,7 +251,7 @@ def sensitivity_fun(alignment_err, acceptance_angle, order=2):
 
 def corrected_isc(isc_0, delta_l0, delta_l1, tracker_offset, acceptance_angle, acceptance_angle_order):
     delta_l = np.sqrt(np.power(delta_l0, 2) + np.power(delta_l1, 2))
-    isc = np.sqrt(isc_0 * sensitivity_fun(delta_l + tracker_offset, acceptance_angle, acceptance_angle_order))
+    isc = isc_0 * np.sqrt(sensitivity_fun(delta_l + tracker_offset, acceptance_angle, acceptance_angle_order))
     return isc
 
 
