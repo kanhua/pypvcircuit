@@ -2,26 +2,26 @@
 
 This is a 3D multi-junction solar cell modeling software. This model cuts the software into small "pixels" and model each pixel as a small solar cell. This is shown in the below figure:
 
-
 ![network_sim](./doc_images/network_simulation_3d.png)
+
+The scientific paper accompanied with this work has been published at [IEEE Access](https://doi.org/10.1109/ACCESS.2019.2930002).
 
 ## How to run this software
 
 ### Instructions of installation
 See [install.md](./install.md) for how to install.
 
-### Run in on CodeOcean
+### Run in on CodeOcean (You only need a web browser to run the code)
 
-This repository is mirrored on [CodeOcean](https://codeocean.com/capsule/2397906/), where you can view and run [network simulation starter.ipynb](./network simulation starter.ipynb) to see this software work in action.
-
+This repository is mirrored on [CodeOcean](https://codeocean.com/capsule/9504942/tree/v1), where you can view and run [network simulation starter.ipynb](./network simulation starter.ipynb) to see this software work in action, without the need of installing python and other packages.
 
 ## Package dependency
 
 You have to install [pypvcell](https://github.com/kanhua/pypvcell) before running this package. See this [installation guide](./docs/install.md) for details.
 
-## Model
+## Description of the model
 
-A brief description of the model is [here](./docs/calculation_principles.md). PDF version is [here](./docs/calculation_principles.pdf).
+The scientific paper accompanied with this work has been published at [IEEE Access](https://doi.org/10.1109/ACCESS.2019.2930002).
 
 ## Reproduce the results
 
